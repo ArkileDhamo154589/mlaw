@@ -417,6 +417,280 @@ function mourtzilaki_mobile_menu() {
 add_filter( 'excerpt_length', function () { return 28; }, 999 );
 add_filter( 'excerpt_more',   function () { return '…'; } );
 
+/* =====================================================================
+ * Testimonial moderation dashboard (admin)
+ * =================================================================== */
+add_action( 'admin_menu', 'mourtzilaki_register_review_moderation', 20 );
+function mourtzilaki_register_review_moderation() {
+    $pending = (int) wp_count_posts( 'mz_testimonial' )->pending;
+    $badge   = $pending > 0 ? ' <span class="awaiting-mod count-' . $pending . '"><span class="pending-count">' . $pending . '</span></span>' : '';
+
+    add_submenu_page(
+        'edit.php?post_type=mz_testimonial',
+        'Έγκριση αξιολογήσεων',
+        'Έγκριση' . $badge,
+        'edit_posts',
+        'mz-reviews-moderation',
+        'mourtzilaki_render_review_moderation'
+    );
+}
+
+add_action( 'admin_post_mourtzilaki_approve_review', 'mourtzilaki_handle_review_action' );
+add_action( 'admin_post_mourtzilaki_reject_review',  'mourtzilaki_handle_review_action' );
+function mourtzilaki_handle_review_action() {
+    if ( ! current_user_can( 'edit_posts' ) ) { wp_die( 'forbidden' ); }
+    $id = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
+    $nonce = isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '';
+    if ( ! $id || ! wp_verify_nonce( $nonce, 'mz_review_action_' . $id ) ) { wp_die( 'bad nonce' ); }
+
+    $action = current_action();
+    $done = '';
+    if ( 'admin_post_mourtzilaki_approve_review' === $action ) {
+        wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ) );
+        $done = 'approved';
+    } elseif ( 'admin_post_mourtzilaki_reject_review' === $action ) {
+        wp_trash_post( $id );
+        $done = 'rejected';
+    }
+    wp_safe_redirect( admin_url( 'edit.php?post_type=mz_testimonial&page=mz-reviews-moderation&done=' . $done ) );
+    exit;
+}
+
+function mourtzilaki_render_review_moderation() {
+    $pending_q = new WP_Query( array(
+        'post_type'      => 'mz_testimonial',
+        'post_status'    => 'pending',
+        'posts_per_page' => -1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ) );
+    $approved_count = (int) wp_count_posts( 'mz_testimonial' )->publish;
+    $trashed_count  = (int) wp_count_posts( 'mz_testimonial' )->trash;
+    $pending_count  = (int) wp_count_posts( 'mz_testimonial' )->pending;
+
+    $done = isset( $_GET['done'] ) ? sanitize_text_field( wp_unslash( $_GET['done'] ) ) : '';
+    ?>
+    <style>
+        .toplevel_page_mz-reviews-moderation #wpcontent,
+        .mz-testimonial_page_mz-reviews-moderation #wpcontent { padding-left: 0 !important; }
+        .mz-mod-wrap {
+            --mod-ink: #f5ecd9; --mod-ink-2: #b9af96; --mod-muted: #6c6555;
+            --mod-line: rgba(255,255,255,0.08); --mod-line-2: rgba(255,255,255,0.04);
+            --mod-bg: #0d0c0a; --mod-bg-2: #15130f; --mod-bg-3: #1d1a14;
+            --mod-gold: #c5a572; --mod-gold-2: #d4b67e; --mod-gold-3: #8e6e2a;
+            --mod-green: #4ade80; --mod-red: #f87171;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--mod-ink); background: var(--mod-bg);
+            min-height: 100vh; margin: 0 0 0 -20px; padding: 24px 32px 60px;
+            -webkit-font-smoothing: antialiased;
+        }
+        .mz-mod-wrap *, .mz-mod-wrap *::before, .mz-mod-wrap *::after { box-sizing: border-box; }
+        .mz-mod-hero {
+            position: relative; padding: 40px 36px; margin-bottom: 28px;
+            border: 1px solid var(--mod-line); border-radius: 6px; overflow: hidden;
+            background:
+                radial-gradient(60% 80% at 100% 0%, rgba(197,165,114,0.15), transparent 60%),
+                linear-gradient(135deg, var(--mod-bg-3), var(--mod-bg-2));
+            display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap;
+        }
+        .mz-mod-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--mod-gold); font-weight: 500;
+        }
+        .mz-mod-eyebrow .dot {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--mod-gold);
+            box-shadow: 0 0 0 0 rgba(197,165,114,0.5);
+            animation: mzModPulse 2s infinite;
+        }
+        @keyframes mzModPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(197,165,114,0.5); }
+            70%      { box-shadow: 0 0 0 10px rgba(197,165,114,0); }
+        }
+        .mz-mod-hero h1 { font-size: 32px; line-height: 1.15; color: #fff; margin: 14px 0 8px; font-weight: 500; letter-spacing: -0.015em; }
+        .mz-mod-hero p { color: var(--mod-ink-2); font-size: 15px; max-width: 60ch; margin: 0; }
+        .mz-mod-counts { display: flex; gap: 18px; }
+        .mz-mod-count {
+            text-align: right; padding: 12px 18px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--mod-line); border-radius: 4px;
+        }
+        .mz-mod-count .num { font-size: 24px; font-weight: 600; color: #fff; line-height: 1; }
+        .mz-mod-count .lab { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mod-muted); margin-top: 4px; }
+        .mz-mod-count.pending .num { color: var(--mod-gold); }
+        .mz-mod-msg {
+            margin-bottom: 20px; padding: 14px 20px;
+            border-left: 3px solid var(--mod-green); background: var(--mod-bg-2);
+            border: 1px solid var(--mod-line); border-left: 3px solid var(--mod-green);
+            color: var(--mod-ink); border-radius: 4px;
+        }
+        .mz-mod-msg.rejected { border-left-color: var(--mod-red); }
+        .mz-mod-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px;
+        }
+        .mz-mod-card {
+            background: var(--mod-bg-2); border: 1px solid var(--mod-line); border-radius: 6px;
+            padding: 24px; display: flex; flex-direction: column; gap: 16px; position: relative;
+            transition: border-color .25s, transform .25s;
+        }
+        .mz-mod-card:hover { border-color: rgba(197,165,114,0.3); transform: translateY(-2px); }
+        .mz-mod-card-h {
+            display: flex; align-items: center; gap: 14px;
+            padding-bottom: 14px; border-bottom: 1px solid var(--mod-line-2);
+        }
+        .mz-mod-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--mod-gold), var(--mod-gold-3));
+            color: var(--mod-bg); display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 16px; flex-shrink: 0;
+        }
+        .mz-mod-meta { flex: 1; min-width: 0; }
+        .mz-mod-name { color: #fff; font-size: 15px; font-weight: 500; }
+        .mz-mod-role { color: var(--mod-muted); font-size: 12px; margin-top: 2px; }
+        .mz-mod-time { color: var(--mod-muted); font-size: 11px; letter-spacing: 0.06em; }
+        .mz-mod-quote {
+            color: var(--mod-ink); font-size: 14px; line-height: 1.6;
+            font-style: italic; padding: 0 0 0 16px; border-left: 2px solid var(--mod-gold);
+            margin: 0;
+        }
+        .mz-mod-email {
+            font-size: 12px; color: var(--mod-ink-2);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .mz-mod-email a { color: var(--mod-gold-2); text-decoration: none; }
+        .mz-mod-email a:hover { color: #fff; }
+        .mz-mod-actions {
+            display: flex; gap: 8px; padding-top: 16px;
+            border-top: 1px solid var(--mod-line-2); margin-top: auto;
+        }
+        .mz-mod-btn {
+            flex: 1; padding: 10px 16px; border-radius: 4px; border: 0;
+            font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+            cursor: pointer; text-decoration: none; text-align: center;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            transition: background .2s, color .2s;
+        }
+        .mz-mod-btn-approve {
+            background: linear-gradient(135deg, var(--mod-gold), var(--mod-gold-3));
+            color: var(--mod-bg); font-weight: 600;
+        }
+        .mz-mod-btn-approve:hover { background: var(--mod-gold-2); color: var(--mod-bg); }
+        .mz-mod-btn-reject {
+            background: transparent; color: var(--mod-ink-2);
+            border: 1px solid var(--mod-line);
+        }
+        .mz-mod-btn-reject:hover { border-color: var(--mod-red); color: var(--mod-red); }
+        .mz-mod-btn-edit {
+            background: transparent; color: var(--mod-muted);
+            border: 1px solid var(--mod-line); padding: 10px 12px; flex: 0 0 auto;
+        }
+        .mz-mod-btn-edit:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
+        .mz-mod-empty {
+            text-align: center; padding: 80px 32px; background: var(--mod-bg-2);
+            border: 1px dashed var(--mod-line); border-radius: 6px; color: var(--mod-muted);
+        }
+        .mz-mod-empty .ic {
+            width: 64px; height: 64px; margin: 0 auto 16px;
+            border-radius: 50%; background: var(--mod-bg-3);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--mod-gold);
+        }
+        .mz-mod-empty h3 { color: #fff; font-weight: 500; font-size: 18px; margin: 0 0 8px; }
+        .mz-mod-empty p { color: var(--mod-muted); margin: 0; }
+        @media (max-width: 782px) {
+            .mz-mod-wrap { margin-left: -10px; padding: 16px; }
+            .mz-mod-grid { grid-template-columns: 1fr; }
+            .mz-mod-hero { padding: 28px 24px; }
+        }
+    </style>
+    <div class="mz-mod-wrap">
+
+        <header class="mz-mod-hero">
+            <div>
+                <span class="mz-mod-eyebrow"><span class="dot"></span> Moderation queue</span>
+                <h1>Έγκριση αξιολογήσεων</h1>
+                <p>Νέες αξιολογήσεις πελατών που υποβλήθηκαν μέσω της φόρμας στο <code>/reviews/</code>. Ελέγξτε προσεκτικά πριν την έγκριση — μετά τη δημοσίευση είναι ορατές δημόσια.</p>
+            </div>
+            <div class="mz-mod-counts">
+                <div class="mz-mod-count pending">
+                    <div class="num"><?php echo esc_html( $pending_count ); ?></div>
+                    <div class="lab">Σε αναμονή</div>
+                </div>
+                <div class="mz-mod-count">
+                    <div class="num"><?php echo esc_html( $approved_count ); ?></div>
+                    <div class="lab">Δημοσιευμένες</div>
+                </div>
+                <div class="mz-mod-count">
+                    <div class="num"><?php echo esc_html( $trashed_count ); ?></div>
+                    <div class="lab">Στον κάδο</div>
+                </div>
+            </div>
+        </header>
+
+        <?php if ( 'approved' === $done ) : ?>
+            <div class="mz-mod-msg">✓ Η αξιολόγηση εγκρίθηκε και δημοσιεύτηκε.</div>
+        <?php elseif ( 'rejected' === $done ) : ?>
+            <div class="mz-mod-msg rejected">✕ Η αξιολόγηση απορρίφθηκε και μεταφέρθηκε στον κάδο.</div>
+        <?php endif; ?>
+
+        <?php if ( $pending_q->have_posts() ) : ?>
+            <div class="mz-mod-grid">
+                <?php while ( $pending_q->have_posts() ) : $pending_q->the_post();
+                    $tid    = get_the_ID();
+                    $name   = get_the_title();
+                    $role   = function_exists( 'get_field' ) ? (string) get_field( 'role',  $tid ) : '';
+                    $quote  = function_exists( 'get_field' ) ? (string) get_field( 'quote', $tid ) : '';
+                    $email  = (string) get_post_meta( $tid, '_reviewer_email', true );
+                    $ip     = (string) get_post_meta( $tid, '_reviewer_ip', true );
+                    $when   = mysql2date( 'd.m.Y · H:i', get_post()->post_date );
+                    $initial = mb_strtoupper( mb_substr( $name, 0, 1 ) );
+
+                    $approve_url = wp_nonce_url(
+                        admin_url( 'admin-post.php?action=mourtzilaki_approve_review&id=' . $tid ),
+                        'mz_review_action_' . $tid
+                    );
+                    $reject_url = wp_nonce_url(
+                        admin_url( 'admin-post.php?action=mourtzilaki_reject_review&id=' . $tid ),
+                        'mz_review_action_' . $tid
+                    );
+                    $edit_url = get_edit_post_link( $tid, 'raw' );
+                ?>
+                    <article class="mz-mod-card">
+                        <header class="mz-mod-card-h">
+                            <span class="mz-mod-avatar"><?php echo esc_html( $initial ); ?></span>
+                            <div class="mz-mod-meta">
+                                <div class="mz-mod-name"><?php echo esc_html( $name ); ?></div>
+                                <?php if ( $role ) : ?><div class="mz-mod-role"><?php echo esc_html( $role ); ?></div><?php endif; ?>
+                            </div>
+                            <span class="mz-mod-time"><?php echo esc_html( $when ); ?></span>
+                        </header>
+                        <blockquote class="mz-mod-quote"><?php echo esc_html( $quote ); ?></blockquote>
+                        <?php if ( $email ) : ?>
+                            <div class="mz-mod-email">
+                                <span style="opacity:0.5">✉</span>
+                                <a href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $email ); ?></a>
+                            </div>
+                        <?php endif; ?>
+                        <footer class="mz-mod-actions">
+                            <a class="mz-mod-btn mz-mod-btn-approve" href="<?php echo esc_url( $approve_url ); ?>" onclick="return confirm('Έγκριση και άμεση δημοσίευση;');">✓ Έγκριση</a>
+                            <a class="mz-mod-btn mz-mod-btn-reject" href="<?php echo esc_url( $reject_url ); ?>" onclick="return confirm('Απόρριψη και μεταφορά στον κάδο;');">✕ Απόρριψη</a>
+                            <a class="mz-mod-btn mz-mod-btn-edit" href="<?php echo esc_url( $edit_url ); ?>" title="Επεξεργασία">✎</a>
+                        </footer>
+                    </article>
+                <?php endwhile; wp_reset_postdata(); ?>
+            </div>
+        <?php else : ?>
+            <div class="mz-mod-empty">
+                <div class="ic">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+                </div>
+                <h3>Όλα καθαρά</h3>
+                <p>Δεν υπάρχουν αξιολογήσεις σε αναμονή.</p>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
 /**
  * Public review submission — saved as 'pending' in mz_testimonial CPT.
  * Approval needed by admin (status → publish).

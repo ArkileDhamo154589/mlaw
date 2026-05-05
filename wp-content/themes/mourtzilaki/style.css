@@ -43,8 +43,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; }
 
     --container: 1200px;
     --gutter: clamp(20px, 4vw, 40px);
-    --header-h: 76px;
-    --header-h-mobile: 64px;
+    --header-h: 92px;
+    --header-h-mobile: 72px;
     --radius: 2px;
     --ease: cubic-bezier(.22,.61,.36,1);
 }
@@ -243,13 +243,15 @@ body.menu-open { overflow: hidden; touch-action: none; }
 }
 .brand-logo-img {
     display: block;
-    height: 44px;
+    height: 64px;
     width: auto;
-    max-width: 220px;
+    max-width: 280px;
     object-fit: contain;
+    transition: transform .25s var(--ease);
 }
+.brand-with-logo:hover .brand-logo-img { transform: scale(1.04); }
 @media (max-width: 900px) {
-    .brand-logo-img { height: 36px; }
+    .brand-logo-img { height: 50px; max-width: 220px; }
     .brand .brand-sub { display: none; }
     .brand .brand-name { font-size: 16px; }
     .brand .brand-mark { width: 20px; }
