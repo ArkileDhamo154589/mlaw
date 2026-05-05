@@ -281,6 +281,35 @@ Branded login screen.
 
 ---
 
+## 💾 Database import
+
+Το repo περιέχει πλήρες database dump στο `database/db.sql.gz` (και αποσυμπιεσμένο `database/db.sql`).
+
+**Με DDEV (local):**
+```bash
+ddev import-db --src=database/db.sql.gz
+```
+
+**Με WP-CLI:**
+```bash
+gunzip -c database/db.sql.gz | wp db query
+```
+
+**Με MySQL απευθείας:**
+```bash
+gunzip -c database/db.sql.gz | mysql -u USER -p DATABASE
+```
+
+**Σε Wasmer / άλλο remote host**: ανέβασε το `database/db.sql.gz`, αποσυμπίεσέ το και εκτέλεσέ το στο WordPress database. Μετά την εισαγωγή, αν το domain διαφέρει:
+
+```bash
+wp search-replace 'mourtzilakilaw.ddev.site' 'YOUR-DOMAIN.com' --skip-columns=guid
+```
+
+Default credentials: `achilleas` / `123456` — άλλαξέ τα από το profile.
+
+---
+
 ## 🛠️ Development
 
 ### Useful WP-CLI commands
