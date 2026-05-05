@@ -109,7 +109,7 @@ $error = isset( $_GET['review_error'] ) ? sanitize_text_field( wp_unslash( $_GET
 
                 <div class="rsw-field">
                     <label for="rv-email">Email (δεν δημοσιεύεται)</label>
-                    <input type="email" id="rv-email" name="reviewer_email" maxlength="120" placeholder="vita4content@example.com">
+                    <input type="email" id="rv-email" name="reviewer_email" maxlength="120" placeholder="name@example.com">
                 </div>
 
                 <div class="rsw-field">
