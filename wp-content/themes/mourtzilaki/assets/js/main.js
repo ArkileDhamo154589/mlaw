@@ -112,6 +112,66 @@
         }
     }
 
+    /* ---------- FAQ search + filter ---------- */
+    var faqSearch  = doc.getElementById('faq-search');
+    var faqClear   = doc.getElementById('faq-clear');
+    var faqEmpty   = doc.getElementById('faq-empty');
+    var faqContent = doc.getElementById('faq-content');
+    var faqPills   = doc.querySelectorAll('.faq-pill');
+
+    if (faqSearch && faqContent) {
+        var allItems  = faqContent.querySelectorAll('.faq-item');
+        var allBlocks = faqContent.querySelectorAll('.faq-block');
+        var activeCat = '*';
+
+        var applyFilters = function () {
+            var q = (faqSearch.value || '').trim().toLowerCase();
+            faqClear.style.display = q ? '' : 'none';
+
+            var visibleByBlock = {};
+            allItems.forEach(function (item) {
+                var hay = item.dataset.q || '';
+                var blockEl = item.closest('.faq-block');
+                var cat = blockEl ? blockEl.dataset.cat : '';
+                var matchCat = (activeCat === '*' || cat === activeCat);
+                var matchQ = !q || hay.indexOf(q) !== -1;
+                var visible = matchCat && matchQ;
+                item.style.display = visible ? '' : 'none';
+                if (visible) {
+                    visibleByBlock[cat] = (visibleByBlock[cat] || 0) + 1;
+                }
+            });
+
+            var anyVisible = false;
+            allBlocks.forEach(function (block) {
+                var cat = block.dataset.cat;
+                var count = visibleByBlock[cat] || 0;
+                block.style.display = count > 0 ? '' : 'none';
+                if (count > 0) { anyVisible = true; }
+            });
+
+            if (faqEmpty) { faqEmpty.hidden = anyVisible; }
+        };
+
+        faqSearch.addEventListener('input', applyFilters);
+        if (faqClear) {
+            faqClear.style.display = 'none';
+            faqClear.addEventListener('click', function () {
+                faqSearch.value = '';
+                applyFilters();
+                faqSearch.focus();
+            });
+        }
+        faqPills.forEach(function (pill) {
+            pill.addEventListener('click', function () {
+                faqPills.forEach(function (p) { p.classList.remove('is-active'); });
+                pill.classList.add('is-active');
+                activeCat = pill.dataset.cat || '*';
+                applyFilters();
+            });
+        });
+    }
+
     /* ---------- Back to top ---------- */
     var btt = doc.getElementById('back-to-top');
     if (btt) {
