@@ -1,0 +1,48 @@
+# DDEV
+.ddev/db_snapshots/
+.ddev/.dbimageBuild/
+.ddev/.webimageBuild/
+.ddev/.global_commands/
+.ddev/.gitignore
+.ddev/import-db/
+.ddev/.homeadditions/
+
+# WordPress
+/wp-content/cache/
+/wp-content/upgrade/
+/wp-content/uploads/sites/
+/wp-content/wflogs/
+/wp-content/backup-db/
+/wp-content/backups/
+/wp-content/blogs.dir/
+/wp-content/upgrade/
+/wp-content/wp-cache-config.php
+/wp-content/advanced-cache.php
+/wp-content/object-cache.php
+/wp-config-local.php
+/wp-config-sample.php
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# Logs
+*.log
+error_log
+debug.log
+/wp-content/debug.log
+
+# Node / Composer
+node_modules/
+vendor/
+package-lock.json
+
+# Temp
+*.tmp
+*.bak
