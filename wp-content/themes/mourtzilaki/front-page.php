@@ -7,7 +7,7 @@ get_header();
 
 $slides       = mourtzilaki_get_hero_slides();
 $service_posts = get_posts( array( 'post_type' => 'mz_service', 'posts_per_page' => -1, 'orderby' => 'menu_order date', 'order' => 'ASC' ) );
-$testimonials = mourtzilaki_get_testimonials( 1 );
+$testimonials = mourtzilaki_get_testimonials();
 $team         = mourtzilaki_team();
 $tpl_uri      = get_template_directory_uri();
 $front_id     = (int) get_option( 'page_on_front' );
@@ -198,24 +198,28 @@ $lawyer_meta   = mourtzilaki_parse_lines( $f( 'home_lawyer_meta' ) );
 </section>
 <?php endif; ?>
 
-<!-- 6. Testimonial -->
-<?php if ( ! empty( $testimonials ) ) : $t = $testimonials[0]; ?>
+<!-- 6. Testimonials carousel -->
+<?php if ( ! empty( $testimonials ) ) : ?>
 <section class="testimonial-section">
     <div class="container container-narrow">
-        <div class="testimonial reveal reveal-fade">
-            <span class="quote-mark" aria-hidden="true">“</span>
-            <blockquote><?php echo esc_html( $t['quote'] ); ?></blockquote>
-            <footer class="t-attr">
-                <div>
-                    <div class="t-name"><?php echo esc_html( $t['name'] ); ?></div>
-                    <?php if ( ! empty( $t['role'] ) ) : ?>
-                        <div class="t-role"><?php echo esc_html( $t['role'] ); ?></div>
-                    <?php endif; ?>
+        <div class="testimonials-slick reveal reveal-fade">
+            <?php foreach ( $testimonials as $t ) : ?>
+                <div class="ts-slide">
+                    <span class="quote-mark" aria-hidden="true">“</span>
+                    <blockquote><?php echo esc_html( $t['quote'] ); ?></blockquote>
+                    <footer class="t-attr">
+                        <div>
+                            <div class="t-name"><?php echo esc_html( $t['name'] ); ?></div>
+                            <?php if ( ! empty( $t['role'] ) ) : ?>
+                                <div class="t-role"><?php echo wp_kses( $t['role'], array() ); ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="t-stars" aria-label="5 στα 5">
+                            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                        </div>
+                    </footer>
                 </div>
-                <div class="t-stars" aria-label="5 στα 5">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                </div>
-            </footer>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>

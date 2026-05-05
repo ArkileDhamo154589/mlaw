@@ -5,28 +5,84 @@
     var body = doc.body;
     var win  = window;
 
-    /* ---------- Slick carousel (hero) ---------- */
+    /* ---------- Slick carousels ---------- */
     if (win.jQuery && win.jQuery.fn && win.jQuery.fn.slick) {
         jQuery(function ($) {
-            var $hero = $('.hero-slick');
-            if (!$hero.length) { return; }
             var prevSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
             var nextSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-            $hero.slick({
-                autoplay: true,
-                autoplaySpeed: 6000,
-                speed: 800,
-                fade: true,
-                cssEase: 'cubic-bezier(.22,.61,.36,1)',
-                arrows: true,
-                dots: true,
-                pauseOnHover: false,
-                pauseOnFocus: true,
-                infinite: true,
-                prevArrow: '<button type="button" class="slick-prev" aria-label="Προηγούμενο">' + prevSvg + '</button>',
-                nextArrow: '<button type="button" class="slick-next" aria-label="Επόμενο">'   + nextSvg + '</button>'
+
+            var $hero = $('.hero-slick');
+            if ($hero.length) {
+                $hero.slick({
+                    autoplay: true, autoplaySpeed: 6000, speed: 800,
+                    fade: true, cssEase: 'cubic-bezier(.22,.61,.36,1)',
+                    arrows: true, dots: true, pauseOnHover: false, pauseOnFocus: true, infinite: true,
+                    prevArrow: '<button type="button" class="slick-prev" aria-label="Προηγούμενο">' + prevSvg + '</button>',
+                    nextArrow: '<button type="button" class="slick-next" aria-label="Επόμενο">' + nextSvg + '</button>'
+                });
+            }
+
+            // Testimonials (homepage) — 1 per slide, fade
+            var $ts = $('.testimonials-slick');
+            if ($ts.length) {
+                $ts.slick({
+                    autoplay: true, autoplaySpeed: 7000, speed: 700,
+                    fade: true, arrows: false, dots: true, infinite: true, pauseOnHover: true,
+                });
+            }
+
+            // Reviews page carousel — 3 visible, scroll
+            var $rv = $('.reviews-slick');
+            if ($rv.length) {
+                $rv.slick({
+                    slidesToShow: 3, slidesToScroll: 1, speed: 600,
+                    autoplay: true, autoplaySpeed: 6000, pauseOnHover: true,
+                    arrows: true, dots: true, infinite: true,
+                    prevArrow: '<button type="button" class="slick-prev" aria-label="Προηγούμενο">' + prevSvg + '</button>',
+                    nextArrow: '<button type="button" class="slick-next" aria-label="Επόμενο">' + nextSvg + '</button>',
+                    responsive: [
+                        { breakpoint: 1100, settings: { slidesToShow: 2 } },
+                        { breakpoint: 760,  settings: { slidesToShow: 1, arrows: false } }
+                    ]
+                });
+            }
+        });
+    }
+
+    /* ---------- Cases filter ---------- */
+    var caseFilters = doc.querySelectorAll('.cases-filter');
+    var caseGrid    = doc.querySelector('.cases-grid');
+    var casesEmpty  = doc.getElementById('cases-empty');
+    if (caseFilters.length && caseGrid) {
+        var caseCards = caseGrid.querySelectorAll('.case-card');
+        caseFilters.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                caseFilters.forEach(function (b) { b.classList.remove('is-active'); });
+                btn.classList.add('is-active');
+                var f = btn.dataset.filter || '*';
+                var visible = 0;
+                caseCards.forEach(function (card) {
+                    var match = (f === '*') || (card.dataset.svc === f);
+                    card.style.display = match ? '' : 'none';
+                    if (match) { visible++; }
+                });
+                if (casesEmpty) { casesEmpty.hidden = visible > 0; }
             });
         });
+    }
+
+    /* ---------- Review form character counter ---------- */
+    var rvQuote = doc.getElementById('rv-quote');
+    var rvCounter = doc.querySelector('.rsw-counter');
+    if (rvQuote && rvCounter) {
+        var max = parseInt(rvQuote.getAttribute('maxlength'), 10) || 1500;
+        var update = function () {
+            var n = rvQuote.value.length;
+            rvCounter.textContent = n + ' / ' + max;
+            rvCounter.classList.toggle('is-near', n > max * 0.9);
+        };
+        rvQuote.addEventListener('input', update);
+        update();
     }
 
     /* ---------- Sticky header shadow on scroll ---------- */

@@ -30,7 +30,7 @@ add_action( 'after_setup_theme', function () {
 add_action( 'wp_enqueue_scripts', function () {
     wp_enqueue_style( 'mourtzilaki', get_stylesheet_uri(), array(), MOURTZILAKI_VER );
 
-    $needs_slick = is_front_page();
+    $needs_slick = is_front_page() || is_page( array( 'reviews' ) );
     if ( $needs_slick ) {
         wp_enqueue_style(  'slick',       'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css', array(), '1.8.1' );
         wp_enqueue_style(  'slick-theme', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css', array( 'slick' ), '1.8.1' );
@@ -181,9 +181,9 @@ function mourtzilaki_seed_content() {
         'team'     => array( 'title' => 'Δικηγόροι' ),
         'bio'      => array( 'title' => 'Βιογραφικό' ),
         'reviews'  => array( 'title' => 'Συστάσεις' ),
+        'cases'    => array( 'title' => 'Επιλεγμένες υποθέσεις' ),
         'faq'      => array( 'title' => 'Συχνές Ερωτήσεις' ),
         'glossary' => array( 'title' => 'Νομικό λεξικό' ),
-        'careers'  => array( 'title' => 'Καριέρα' ),
         'blog'     => array( 'title' => 'Άρθρα' ),
         'contact'  => array( 'title' => 'Επικοινωνία' ),
         'privacy'  => array( 'title' => 'Πολιτική Απορρήτου' ),
@@ -300,7 +300,7 @@ function mourtzilaki_menu_items() {
                 array( 'slug' => 'team',    'label' => 'Η ομάδα',           'desc' => 'Ποιοι είμαστε' ),
                 array( 'slug' => 'bio',     'label' => 'Βιογραφικό',        'desc' => 'Σπουδές, καριέρα, εξειδίκευση' ),
                 array( 'slug' => 'reviews', 'label' => 'Συστάσεις πελατών', 'desc' => 'Τι λένε όσοι μας εμπιστεύτηκαν' ),
-                array( 'slug' => 'careers', 'label' => 'Καριέρα',           'desc' => 'Θέσεις & συνεργασίες' ),
+                array( 'slug' => 'cases',   'label' => 'Επιλεγμένες υποθέσεις', 'desc' => 'Παραδείγματα δουλειάς μας' ),
             ),
         ),
         array( 'slug' => 'services', 'label' => 'Τομείς δικαίου', 'children_cpt' => 'mz_service' ),
@@ -417,6 +417,70 @@ function mourtzilaki_mobile_menu() {
 add_filter( 'excerpt_length', function () { return 28; }, 999 );
 add_filter( 'excerpt_more',   function () { return '…'; } );
 
+/**
+ * Public review submission — saved as 'pending' in mz_testimonial CPT.
+ * Approval needed by admin (status → publish).
+ */
+add_action( 'admin_post_mourtzilaki_submit_review',         'mourtzilaki_handle_review_submission' );
+add_action( 'admin_post_nopriv_mourtzilaki_submit_review',  'mourtzilaki_handle_review_submission' );
+
+function mourtzilaki_handle_review_submission() {
+    $back = wp_get_referer() ?: home_url( '/reviews/' );
+
+    // Honeypot — silently treat as success.
+    if ( ! empty( $_POST['website'] ) ) {
+        wp_safe_redirect( add_query_arg( 'review_sent', '1', $back ) );
+        exit;
+    }
+
+    if ( ! isset( $_POST['_review_nonce'] ) ||
+         ! wp_verify_nonce( wp_unslash( $_POST['_review_nonce'] ), 'mourtzilaki_review' ) ) {
+        wp_safe_redirect( add_query_arg( 'review_error', 'nonce', $back ) );
+        exit;
+    }
+
+    $name  = isset( $_POST['reviewer_name'] )  ? sanitize_text_field( wp_unslash( $_POST['reviewer_name'] ) )     : '';
+    $role  = isset( $_POST['reviewer_role'] )  ? sanitize_text_field( wp_unslash( $_POST['reviewer_role'] ) )     : '';
+    $email = isset( $_POST['reviewer_email'] ) ? sanitize_email( wp_unslash( $_POST['reviewer_email'] ) )          : '';
+    $quote = isset( $_POST['reviewer_quote'] ) ? sanitize_textarea_field( wp_unslash( $_POST['reviewer_quote'] ) ) : '';
+    $gdpr  = isset( $_POST['gdpr'] );
+
+    if ( '' === $name || '' === $quote || ! $gdpr ) {
+        wp_safe_redirect( add_query_arg( 'review_error', 'missing', $back ) );
+        exit;
+    }
+    if ( mb_strlen( $quote ) > 1500 ) { $quote = mb_substr( $quote, 0, 1500 ); }
+
+    $id = wp_insert_post( array(
+        'post_type'   => 'mz_testimonial',
+        'post_status' => 'pending',
+        'post_title'  => $name,
+    ), true );
+    if ( is_wp_error( $id ) || ! $id ) {
+        wp_safe_redirect( add_query_arg( 'review_error', 'save', $back ) );
+        exit;
+    }
+
+    if ( function_exists( 'update_field' ) ) {
+        update_field( 'quote', $quote, $id );
+        update_field( 'role',  $role,  $id );
+    }
+    if ( $email ) { update_post_meta( $id, '_reviewer_email', $email ); }
+    update_post_meta( $id, '_reviewer_ip', isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( $_SERVER['REMOTE_ADDR'] ) : '' );
+
+    // Notify admin.
+    $edit_url = admin_url( 'post.php?post=' . $id . '&action=edit' );
+    wp_mail(
+        get_option( 'admin_email' ),
+        'Νέα αξιολόγηση προς έγκριση',
+        "Νέα αξιολόγηση από: {$name}\nEmail: {$email}\nΙδιότητα: {$role}\n\nΚείμενο:\n{$quote}\n\nΈγκριση: {$edit_url}",
+        array( 'Reply-To: ' . ( $email ?: get_option( 'admin_email' ) ) )
+    );
+
+    wp_safe_redirect( add_query_arg( 'review_sent', '1', $back ) . '#review-form' );
+    exit;
+}
+
 /* =====================================================================
  * Custom post types — content edited via ACF in WP admin.
  * =================================================================== */
@@ -458,6 +522,25 @@ add_action( 'init', function () {
         'supports'           => array( 'title', 'page-attributes', 'editor' ),
         'has_archive'        => false,
         'rewrite'            => array( 'slug' => 'tomeas', 'with_front' => false ),
+    ) );
+
+    register_post_type( 'mz_case', array(
+        'labels' => array(
+            'name'          => 'Επιλεγμένες υποθέσεις',
+            'singular_name' => 'Υπόθεση',
+            'add_new_item'  => 'Νέα υπόθεση',
+            'edit_item'     => 'Επεξεργασία υπόθεσης',
+            'all_items'     => 'Όλες οι υποθέσεις',
+            'menu_name'     => 'Υποθέσεις',
+        ),
+        'public'        => false,
+        'show_ui'       => true,
+        'show_in_menu'  => true,
+        'menu_position' => 27,
+        'menu_icon'     => 'dashicons-portfolio',
+        'supports'      => array( 'title', 'page-attributes' ),
+        'has_archive'   => false,
+        'rewrite'       => false,
     ) );
 
     register_post_type( 'mz_faq', array(
@@ -595,6 +678,24 @@ add_action( 'acf/init', function () {
             'position' => 'normal',
         ) );
     }
+
+    /* Case study fields ---------------------------------------------- */
+    $svc_choices_for_cases = array( '' => '— επιλογή —' );
+    foreach ( get_posts( array( 'post_type' => 'mz_service', 'posts_per_page' => -1, 'orderby' => 'menu_order date', 'order' => 'ASC' ) ) as $svc_p ) {
+        $svc_choices_for_cases[ $svc_p->ID ] = get_the_title( $svc_p );
+    }
+    acf_add_local_field_group( array(
+        'key'    => 'group_mz_case',
+        'title'  => 'Στοιχεία υπόθεσης',
+        'fields' => array(
+            array( 'key' => 'field_mz_c_area',     'label' => 'Τομέας δικαίου', 'name' => 'practice_area', 'type' => 'select', 'choices' => $svc_choices_for_cases, 'allow_null' => 0, 'required' => 1, 'return_format' => 'value' ),
+            array( 'key' => 'field_mz_c_year',     'label' => 'Έτος ολοκλήρωσης', 'name' => 'year',     'type' => 'text', 'instructions' => 'Π.χ. 2024' ),
+            array( 'key' => 'field_mz_c_duration', 'label' => 'Διάρκεια',         'name' => 'duration', 'type' => 'text', 'instructions' => 'Π.χ. «8 μήνες», «1 έτος»' ),
+            array( 'key' => 'field_mz_c_outcome',  'label' => 'Αποτέλεσμα',       'name' => 'outcome',  'type' => 'text', 'required' => 1, 'instructions' => 'Σύντομη φράση που συνοψίζει το επίτευγμα. Π.χ. «Κούρεμα οφειλής 35%».' ),
+            array( 'key' => 'field_mz_c_desc',     'label' => 'Περιγραφή',        'name' => 'description', 'type' => 'textarea', 'rows' => 4, 'required' => 1, 'instructions' => 'Σύντομη περιγραφή 2-3 προτάσεων χωρίς αναφορά σε ονόματα.' ),
+        ),
+        'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'mz_case' ) ) ),
+    ) );
 
     /* FAQ fields ------------------------------------------------------ */
     acf_add_local_field_group( array(
@@ -1171,6 +1272,123 @@ function mourtzilaki_seed_articles_v2() {
 }
 
 add_action( 'init', 'mourtzilaki_seed_faqs', 40 );
+
+add_action( 'init', 'mourtzilaki_seed_more_testimonials', 42 );
+function mourtzilaki_seed_more_testimonials() {
+    if ( get_option( 'mourtzilaki_more_testimonials' ) === '1.0' ) { return; }
+    if ( ! function_exists( 'update_field' ) ) { return; }
+
+    $existing_count = (int) wp_count_posts( 'mz_testimonial' )->publish;
+    if ( $existing_count >= 5 ) { update_option( 'mourtzilaki_more_testimonials', '1.0' ); return; }
+
+    $more = array(
+        array( 'name' => 'Α. Γεωργίου', 'role' => 'Ιδιώτης · Διαζύγιο &amp; επιμέλεια', 'quote' => 'Σε μια στιγμή που νιώθαμε να χάνουμε το έδαφος, η Έλενα μας έδωσε ένα συγκεκριμένο σχέδιο. Εξήγησε τι μπορεί και τι δεν μπορεί να γίνει, χωρίς ωραιοποιήσεις. Φύγαμε από κάθε συνάντηση πιο ξεκάθαροι.' ),
+        array( 'name' => 'Μ. Κωνσταντίνου', 'role' => 'Πρόεδρος ΔΣ τεχνολογικής εταιρείας', 'quote' => 'Δουλεύουμε μαζί 4 χρόνια ως legal retainer. Η ταχύτητα απόκρισης είναι αυτό που με κερδίζει — απαντήσεις σε ώρες, όχι σε ημέρες. Νομικά τεκμηριωμένες, καθαρές, εφαρμόσιμες.' ),
+        array( 'name' => 'Ν. Παπαδάκης', 'role' => 'Ιδιώτης · Κτηματολόγιο', 'quote' => 'Είχα μια διόρθωση πρώτης εγγραφής που ήμουν σίγουρος ότι δεν έβγαινε. Η Έλενα μελέτησε τα έγγραφα, βρήκε τη σωστή νομική βάση και η υπόθεση ολοκληρώθηκε σε 8 μήνες. Διαφανές κόστος, καμία έκπληξη.' ),
+        array( 'name' => 'Σ. Δημητρίου', 'role' => 'Διευθύνουσα Σύμβουλος Ε.Π.Ε.', 'quote' => 'Χρειαζόμασταν αναδιάρθρωση μετοχικού κεφαλαίου με νέους επενδυτές. Όλα έγιναν ομαλά σε 3 μήνες. Η νομική στήριξη ήταν τέτοια που κάποια στιγμή ξέχασα ότι ασχολούμαι με νομικά — απλώς εμπιστευόμουν τη διαδικασία.' ),
+        array( 'name' => 'Ε. Μιχαηλίδης', 'role' => 'Πελάτης ποινικής υπεράσπισης', 'quote' => 'Η αμεσότητα της παρουσίας από την πρώτη στιγμή ήταν αυτό που μου έδωσε ηρεμία. Στην ποινική υπεράσπιση, η ταχύτητα είναι τα πάντα — και εδώ υπήρξε από το πρώτο τηλέφωνο.' ),
+    );
+
+    foreach ( $more as $i => $t ) {
+        $id = wp_insert_post( array(
+            'post_type'   => 'mz_testimonial',
+            'post_status' => 'publish',
+            'post_title'  => $t['name'],
+            'menu_order'  => $existing_count + $i + 1,
+        ) );
+        if ( $id ) {
+            update_field( 'role',  $t['role'],  $id );
+            update_field( 'quote', $t['quote'], $id );
+        }
+    }
+    update_option( 'mourtzilaki_more_testimonials', '1.0' );
+}
+
+add_action( 'init', 'mourtzilaki_seed_cases', 44 );
+function mourtzilaki_seed_cases() {
+    if ( get_option( 'mourtzilaki_cases' ) === '1.0' ) { return; }
+    if ( ! function_exists( 'update_field' ) ) { return; }
+    if ( get_posts( array( 'post_type' => 'mz_case', 'numberposts' => 1, 'fields' => 'ids' ) ) ) {
+        update_option( 'mourtzilaki_cases', '1.0' );
+        return;
+    }
+
+    $find_svc = function ( $needle ) {
+        foreach ( get_posts( array( 'post_type' => 'mz_service', 'numberposts' => -1 ) ) as $s ) {
+            if ( false !== mb_stripos( get_the_title( $s ), $needle ) ) { return $s->ID; }
+        }
+        return 0;
+    };
+
+    $cases = array(
+        array(
+            'title'    => 'Διαζύγιο 7 ετών διαφωνίας — συμφωνία σε 4 μήνες',
+            'svc'      => 'Οικογενειακό',
+            'year'     => '2024',
+            'duration' => '4 μήνες',
+            'outcome'  => 'Συναινετικό διαζύγιο · συνεπιμέλεια · δίκαιη μοιρασιά',
+            'desc'     => 'Επί χρόνια αδιέξοδη υπόθεση με αμοιβαίες αγωγές. Με στρατηγική μεσολάβησης πετύχαμε συναινετικό διαζύγιο, κανονισμένη συνεπιμέλεια και ισόρροπη ρύθμιση των περιουσιακών στοιχείων.',
+        ),
+        array(
+            'title'    => 'Αναδιάρθρωση μετοχικής σύνθεσης ΙΚΕ τεχνολογίας',
+            'svc'      => 'Εμπορικό',
+            'year'     => '2023',
+            'duration' => '3 μήνες',
+            'outcome'  => 'Είσοδος δύο νέων επενδυτών · προστασία ιδρυτών',
+            'desc'     => 'Σύνταξη shareholder agreement, νέο καταστατικό, drag-along/tag-along ρήτρες, κανόνες αποχώρησης. Διασφάλιση των ιδρυτικών μεριδίων με vesting schedule.',
+        ),
+        array(
+            'title'    => 'Διόρθωση πρώτης εγγραφής σε ακίνητο 320μ²',
+            'svc'      => 'Ακίνητα',
+            'year'     => '2024',
+            'duration' => '8 μήνες',
+            'outcome'  => 'Οριστική διόρθωση εγγραφής · αποκατάσταση τίτλου',
+            'desc'     => 'Λάθος καταχώριση εμβαδού και ιδιοκτήτη στις πρώτες εγγραφές. Με αγωγή και πλήρη τεκμηρίωση από συμβόλαια 25ετίας, πετύχαμε διόρθωση και νομική κατοχύρωση.',
+        ),
+        array(
+            'title'    => 'Απόλυση εργαζομένου 12ετούς προϋπηρεσίας',
+            'svc'      => 'Εργατικό',
+            'year'     => '2023',
+            'duration' => '6 μήνες',
+            'outcome'  => '100% αποζημίωση · επιπλέον αποζημίωση ηθικής βλάβης',
+            'desc'     => 'Ομαδική απόλυση χωρίς τήρηση διαδικασίας. Διεκδικήθηκε και επιδικάστηκε πλήρης αποζημίωση συν αποζημίωση ηθικής βλάβης για παράβαση του τύπου της απόλυσης.',
+        ),
+        array(
+            'title'    => 'Τραπεζικό δάνειο €450.000 — εξωδικαστική ρύθμιση',
+            'svc'      => 'Τραπεζικό',
+            'year'     => '2024',
+            'duration' => '5 μήνες',
+            'outcome'  => 'Κούρεμα κεφαλαίου 35% · ρύθμιση 180 δόσεων',
+            'desc'     => 'Μέσω εξωδικαστικού μηχανισμού, διαπραγμάτευση με τράπεζα και funds. Διασφάλιση κύριας κατοικίας και βιώσιμη ρύθμιση που ο πελάτης μπορεί να εξυπηρετήσει.',
+        ),
+        array(
+            'title'    => 'Κατηγορία υπεξαίρεσης σε στέλεχος επιχείρησης',
+            'svc'      => 'Ποινικό',
+            'year'     => '2024',
+            'duration' => '14 μήνες',
+            'outcome'  => 'Πλήρης αθώωση σε όλα τα δικαστήρια',
+            'desc'     => 'Σύνθετη υπόθεση με λογιστικά και τραπεζικά στοιχεία. Εξονυχιστική ανάλυση εγγράφων, παρουσίαση οικονομικών εκθέσεων στο δικαστήριο, κατάρρευση κατηγορίας.',
+        ),
+    );
+
+    foreach ( $cases as $i => $c ) {
+        $id = wp_insert_post( array(
+            'post_type'   => 'mz_case',
+            'post_status' => 'publish',
+            'post_title'  => $c['title'],
+            'menu_order'  => $i + 1,
+        ) );
+        if ( $id ) {
+            $svc_id = $find_svc( $c['svc'] );
+            if ( $svc_id ) { update_field( 'practice_area', $svc_id, $id ); }
+            update_field( 'year',     $c['year'],     $id );
+            update_field( 'duration', $c['duration'], $id );
+            update_field( 'outcome',  $c['outcome'],  $id );
+            update_field( 'description', $c['desc'],   $id );
+        }
+    }
+    update_option( 'mourtzilaki_cases', '1.0' );
+}
 function mourtzilaki_seed_faqs() {
     if ( get_option( 'mourtzilaki_faqs' ) === '1.0' ) { return; }
     if ( ! function_exists( 'update_field' ) ) { return; }
