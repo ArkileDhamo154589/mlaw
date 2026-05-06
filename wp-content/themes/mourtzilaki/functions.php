@@ -682,8 +682,11 @@ add_action( 'acf/init', function () {
         'title'    => 'Ρυθμίσεις site',
         'fields'   => array(
             array( 'key' => 'field_mz_s_tab_header',   'label' => 'Header',   'type' => 'tab' ),
+            array( 'key' => 'field_mz_s_logo',         'label' => 'Logo site', 'name' => 'site_logo', 'type' => 'image', 'return_format' => 'array', 'preview_size' => 'medium',
+                   'instructions' => 'Αν οριστεί, χρησιμοποιείται στο header και το footer αντί για το όνομα του site. Συνιστάται διαφανές PNG/SVG, ύψος ~50-80px.' ),
+            array( 'key' => 'field_mz_s_logo_alt',     'label' => 'Alt text logo', 'name' => 'site_logo_alt', 'type' => 'text', 'instructions' => 'Αν αφεθεί κενό, χρησιμοποιείται το όνομα του site.' ),
             array( 'key' => 'field_mz_s_brand_sub',    'label' => 'Υπότιτλος brand', 'name' => 'brand_sub', 'type' => 'text',
-                   'instructions' => 'Εμφανίζεται κάτω από το όνομα στο header (όταν δεν υπάρχει custom logo). Κενό = να μην εμφανίζεται.' ),
+                   'instructions' => 'Εμφανίζεται κάτω από το όνομα στο header (όταν δεν υπάρχει logo). Κενό = να μην εμφανίζεται.' ),
             array( 'key' => 'field_mz_s_cta_label',    'label' => 'Κείμενο κουμπιού CTA', 'name' => 'header_cta_label', 'type' => 'text', 'placeholder' => 'Κλείστε ραντεβού' ),
             array( 'key' => 'field_mz_s_cta_url',      'label' => 'URL κουμπιού CTA',     'name' => 'header_cta_url',   'type' => 'url',  'instructions' => 'Π.χ. /contact/ ή απόλυτο URL.' ),
 

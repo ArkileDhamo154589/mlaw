@@ -18,17 +18,27 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 <header class="site-header" id="site-header">
     <div class="container inner">
-        <?php if ( has_custom_logo() ) :
+        <?php
+        // Logo resolution: Site Settings → Customizer custom_logo → text brand.
+        $logo     = mourtzilaki_setting( 'site_logo', null );
+        $logo_url = '';
+        $logo_alt = mourtzilaki_setting( 'site_logo_alt', get_bloginfo( 'name' ) );
+        if ( is_array( $logo ) ) {
+            $logo_url = $logo['url'] ?? '';
+            if ( '' === trim( $logo_alt ) && ! empty( $logo['alt'] ) ) { $logo_alt = $logo['alt']; }
+        } elseif ( has_custom_logo() ) {
             $logo_id  = get_theme_mod( 'custom_logo' );
             $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
+        }
         ?>
-            <a class="brand brand-with-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php bloginfo( 'name' ); ?>">
-                <img class="brand-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php bloginfo( 'name' ); ?>">
+        <?php if ( $logo_url ) : ?>
+            <a class="brand brand-with-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+                <img class="brand-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $logo_alt ); ?>">
             </a>
         <?php else :
             $brand_sub = mourtzilaki_setting( 'brand_sub', 'Δικηγορικό γραφείο' );
         ?>
-            <a class="brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php bloginfo( 'name' ); ?>">
+            <a class="brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
                 <span class="brand-mark" aria-hidden="true"></span>
                 <span class="brand-name"><?php bloginfo( 'name' ); ?></span>
                 <?php if ( $brand_sub ) : ?>

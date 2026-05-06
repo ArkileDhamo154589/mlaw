@@ -27,7 +27,16 @@ $col_hours_title    = mourtzilaki_setting( 'footer_col_hours_title',   'Ωράρ
     <div class="container">
         <div class="top">
             <div class="col">
-                <div class="brand-foot"><?php echo esc_html( $footer_brand ); ?></div>
+                <?php
+                $logo_obj = mourtzilaki_setting( 'site_logo', null );
+                $logo_alt_f = mourtzilaki_setting( 'site_logo_alt', $footer_brand );
+                if ( is_array( $logo_obj ) && ! empty( $logo_obj['url'] ) ) : ?>
+                    <a class="brand-foot brand-foot-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( $footer_brand ); ?>">
+                        <img src="<?php echo esc_url( $logo_obj['url'] ); ?>" alt="<?php echo esc_attr( $logo_alt_f ); ?>">
+                    </a>
+                <?php else : ?>
+                    <div class="brand-foot"><?php echo esc_html( $footer_brand ); ?></div>
+                <?php endif; ?>
                 <p><?php echo mourtzilaki_field_inline( $footer_about_text ); ?></p>
             </div>
             <div class="col">

@@ -728,6 +728,16 @@ body.menu-open .mobile-menu {
     letter-spacing: -0.01em;
     margin-bottom: 12px;
 }
+.site-footer .brand-foot-logo {
+    display: inline-block;
+    margin-bottom: 16px;
+}
+.site-footer .brand-foot-logo img {
+    max-height: 56px;
+    width: auto;
+    display: block;
+    filter: brightness(0) invert(1);
+}
 .site-footer .legal {
     margin-top: 32px;
     display: flex;
