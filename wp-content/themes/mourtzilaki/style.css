@@ -200,7 +200,7 @@ html, body {
     body { padding-top: var(--header-h-mobile); }
     .admin-bar { padding-top: calc(var(--header-h-mobile) + 46px); }
     .admin-bar .site-header { top: 46px; }
-    .site-header .inner { height: var(--header-h-mobile); }
+    .site-header .inner { min-height: var(--header-h-mobile); padding: 6px 0; }
     .site-header.is-scrolled { box-shadow: 0 4px 16px rgba(31,26,20,0.06); }
     .header-cta .btn-primary { display: none; }
     .menu-toggle { width: 40px; height: 40px; }
@@ -214,7 +214,8 @@ body.menu-open { overflow: hidden; touch-action: none; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: var(--header-h);
+    min-height: var(--header-h);
+    padding: 8px 0;
 }
 
 .brand {
@@ -244,15 +245,16 @@ body.menu-open { overflow: hidden; touch-action: none; }
 }
 .brand-logo-img {
     display: block;
-    height: 64px;
+    height: auto;
     width: auto;
-    max-width: 280px;
+    max-height: 200px;
+    max-width: 100%;
     object-fit: contain;
     transition: transform .25s var(--ease);
 }
 .brand-with-logo:hover .brand-logo-img { transform: scale(1.04); }
 @media (max-width: 900px) {
-    .brand-logo-img { height: 50px; max-width: 220px; }
+    .brand-logo-img { max-height: 80px; }
     .brand .brand-sub { display: none; }
     .brand .brand-name { font-size: 16px; }
     .brand .brand-mark { width: 20px; }
@@ -734,9 +736,12 @@ body.menu-open .mobile-menu {
     margin-bottom: 16px;
 }
 .site-footer .brand-foot-logo img {
-    max-height: 56px;
-    width: auto;
     display: block;
+    height: auto;
+    width: auto;
+    max-height: 100px;
+    max-width: 100%;
+    object-fit: contain;
     filter: brightness(0) invert(1);
 }
 .site-footer .legal {

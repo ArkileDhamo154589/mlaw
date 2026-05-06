@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
             $logo_h = (int) mourtzilaki_setting( 'site_logo_height', 0 );
             $logo_w = (int) mourtzilaki_setting( 'site_logo_width', 0 );
             $logo_style = '';
-            if ( $logo_h > 0 ) { $logo_style .= 'height:' . $logo_h . 'px;'; }
+            if ( $logo_h > 0 ) { $logo_style .= 'max-height:' . $logo_h . 'px;'; }
             if ( $logo_w > 0 ) { $logo_style .= 'max-width:' . $logo_w . 'px;'; }
         ?>
             <a class="brand brand-with-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
