@@ -28,11 +28,16 @@ $col_hours_title    = mourtzilaki_setting( 'footer_col_hours_title',   'Ωράρ
         <div class="top">
             <div class="col">
                 <?php
-                $logo_obj = mourtzilaki_setting( 'site_logo', null );
+                $logo_obj   = mourtzilaki_setting( 'site_logo', null );
                 $logo_alt_f = mourtzilaki_setting( 'site_logo_alt', $footer_brand );
+                $logo_h_f   = (int) mourtzilaki_setting( 'site_logo_height', 0 );
+                $logo_w_f   = (int) mourtzilaki_setting( 'site_logo_width', 0 );
+                $logo_style_f = '';
+                if ( $logo_h_f > 0 ) { $logo_style_f .= 'max-height:' . min( $logo_h_f, 80 ) . 'px;'; }
+                if ( $logo_w_f > 0 ) { $logo_style_f .= 'max-width:' . $logo_w_f . 'px;'; }
                 if ( is_array( $logo_obj ) && ! empty( $logo_obj['url'] ) ) : ?>
                     <a class="brand-foot brand-foot-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( $footer_brand ); ?>">
-                        <img src="<?php echo esc_url( $logo_obj['url'] ); ?>" alt="<?php echo esc_attr( $logo_alt_f ); ?>">
+                        <img src="<?php echo esc_url( $logo_obj['url'] ); ?>" alt="<?php echo esc_attr( $logo_alt_f ); ?>"<?php echo $logo_style_f ? ' style="' . esc_attr( $logo_style_f ) . '"' : ''; ?>>
                     </a>
                 <?php else : ?>
                     <div class="brand-foot"><?php echo esc_html( $footer_brand ); ?></div>

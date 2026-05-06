@@ -17,6 +17,7 @@ Text Domain: mourtzilaki
    ========================================================= */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
 body { margin: 0; }
 img, svg, video { max-width: 100%; height: auto; display: block; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
@@ -844,8 +845,21 @@ body.menu-open .mobile-menu {
 }
 .hero-slick .slide .eyebrow { color: var(--gold); margin-bottom: 24px; }
 .hero-slick .slide .eyebrow::before { background: var(--gold); }
-.hero-slick .slide h1 { color: #fff; max-width: 18ch; }
+.hero-slick .slide h1 {
+    color: #fff;
+    max-width: 18ch;
+    font-size: clamp(28px, 4.6vw, 56px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
 .hero-slick .slide .lead { color: #e6dfd2; max-width: 56ch; margin-top: 24px; }
+@media (max-width: 600px) {
+    .hero-slick .slide h1 { font-size: clamp(24px, 7.2vw, 32px); }
+    .hero-slick .slide .lead { font-size: 15px; margin-top: 16px; }
+    .hero-slick .slide .hero-cta { margin-top: 24px; }
+}
 .hero-slick .slide .hero-cta { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
 
 .btn-ghost-light {

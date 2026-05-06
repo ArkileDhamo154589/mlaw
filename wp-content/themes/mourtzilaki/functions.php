@@ -683,8 +683,12 @@ add_action( 'acf/init', function () {
         'fields'   => array(
             array( 'key' => 'field_mz_s_tab_header',   'label' => 'Header',   'type' => 'tab' ),
             array( 'key' => 'field_mz_s_logo',         'label' => 'Logo site', 'name' => 'site_logo', 'type' => 'image', 'return_format' => 'array', 'preview_size' => 'medium',
-                   'instructions' => 'Αν οριστεί, χρησιμοποιείται στο header και το footer αντί για το όνομα του site. Συνιστάται διαφανές PNG/SVG, ύψος ~50-80px.' ),
+                   'instructions' => 'Αν οριστεί, χρησιμοποιείται στο header και το footer αντί για το όνομα του site. Συνιστάται διαφανές PNG/SVG.' ),
             array( 'key' => 'field_mz_s_logo_alt',     'label' => 'Alt text logo', 'name' => 'site_logo_alt', 'type' => 'text', 'instructions' => 'Αν αφεθεί κενό, χρησιμοποιείται το όνομα του site.' ),
+            array( 'key' => 'field_mz_s_logo_h',       'label' => 'Ύψος logo (px)', 'name' => 'site_logo_height', 'type' => 'number', 'placeholder' => '64', 'min' => 16, 'max' => 200,
+                   'instructions' => 'Default: 64px (desktop) / 50px (mobile). Άδειο = default.' ),
+            array( 'key' => 'field_mz_s_logo_w',       'label' => 'Μέγιστο πλάτος logo (px)', 'name' => 'site_logo_width', 'type' => 'number', 'placeholder' => '280', 'min' => 60, 'max' => 600,
+                   'instructions' => 'Default: 280px. Το logo κρατάει αναλογίες — αν το πλάτος είναι πιο περιοριστικό από το ύψος, μειώνει αναλόγως.' ),
             array( 'key' => 'field_mz_s_brand_sub',    'label' => 'Υπότιτλος brand', 'name' => 'brand_sub', 'type' => 'text',
                    'instructions' => 'Εμφανίζεται κάτω από το όνομα στο header (όταν δεν υπάρχει logo). Κενό = να μην εμφανίζεται.' ),
             array( 'key' => 'field_mz_s_cta_label',    'label' => 'Κείμενο κουμπιού CTA', 'name' => 'header_cta_label', 'type' => 'text', 'placeholder' => 'Κλείστε ραντεβού' ),

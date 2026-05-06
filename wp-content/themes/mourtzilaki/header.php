@@ -31,9 +31,15 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
             $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
         }
         ?>
-        <?php if ( $logo_url ) : ?>
+        <?php if ( $logo_url ) :
+            $logo_h = (int) mourtzilaki_setting( 'site_logo_height', 0 );
+            $logo_w = (int) mourtzilaki_setting( 'site_logo_width', 0 );
+            $logo_style = '';
+            if ( $logo_h > 0 ) { $logo_style .= 'height:' . $logo_h . 'px;'; }
+            if ( $logo_w > 0 ) { $logo_style .= 'max-width:' . $logo_w . 'px;'; }
+        ?>
             <a class="brand brand-with-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
-                <img class="brand-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $logo_alt ); ?>">
+                <img class="brand-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $logo_alt ); ?>"<?php echo $logo_style ? ' style="' . esc_attr( $logo_style ) . '"' : ''; ?>>
             </a>
         <?php else :
             $brand_sub = mourtzilaki_setting( 'brand_sub', 'Δικηγορικό γραφείο' );
