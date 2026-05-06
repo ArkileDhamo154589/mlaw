@@ -25,11 +25,15 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
             <a class="brand brand-with-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php bloginfo( 'name' ); ?>">
                 <img class="brand-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php bloginfo( 'name' ); ?>">
             </a>
-        <?php else : ?>
+        <?php else :
+            $brand_sub = mourtzilaki_setting( 'brand_sub', 'Δικηγορικό γραφείο' );
+        ?>
             <a class="brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php bloginfo( 'name' ); ?>">
                 <span class="brand-mark" aria-hidden="true"></span>
                 <span class="brand-name"><?php bloginfo( 'name' ); ?></span>
-                <small class="brand-sub">Δικηγορικό&nbsp;γραφείο</small>
+                <?php if ( $brand_sub ) : ?>
+                    <small class="brand-sub"><?php echo esc_html( str_replace( ' ', "\xC2\xA0", $brand_sub ) ); ?></small>
+                <?php endif; ?>
             </a>
         <?php endif; ?>
 
@@ -37,9 +41,13 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
             <?php mourtzilaki_primary_menu(); ?>
         </nav>
 
+        <?php
+        $cta_label = mourtzilaki_setting( 'header_cta_label', 'Κλείστε ραντεβού' );
+        $cta_url   = mourtzilaki_setting( 'header_cta_url', mourtzilaki_page_url( 'contact' ) );
+        ?>
         <div class="header-cta">
-            <a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">
-                Κλείστε ραντεβού <span class="arrow" aria-hidden="true">→</span>
+            <a class="btn btn-primary" href="<?php echo esc_url( $cta_url ); ?>">
+                <?php echo esc_html( $cta_label ); ?> <span class="arrow" aria-hidden="true">→</span>
             </a>
             <button class="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Εναλλαγή μενού', 'mourtzilaki' ); ?>">
                 <span class="bars" aria-hidden="true"></span>

@@ -288,7 +288,8 @@ function mourtzilaki_seed_sample_posts() {
 }
 
 /**
- * Internal menu structure (manual, with optional CPT-driven dropdowns).
+ * Default menu structure — used as fallback ONLY if no WP menu is assigned
+ * to the location. Production sites should manage menus via Appearance → Menus.
  */
 function mourtzilaki_menu_items() {
     return array(
@@ -317,37 +318,70 @@ function mourtzilaki_menu_items() {
     );
 }
 
+/**
+ * Read items assigned to a registered nav menu location, organised
+ * top-level → children. Returns array of arrays: [ 'item' => $obj, 'children' => [...] ].
+ * Empty if no menu is assigned to that location.
+ */
+function mourtzilaki_get_menu_tree( $location ) {
+    $locations = get_nav_menu_locations();
+    if ( empty( $locations[ $location ] ) ) { return array(); }
+    $items = wp_get_nav_menu_items( $locations[ $location ] );
+    if ( empty( $items ) ) { return array(); }
+
+    $tree = array();
+    foreach ( $items as $i ) {
+        if ( 0 == $i->menu_item_parent ) {
+            $tree[ $i->ID ] = array( 'item' => $i, 'children' => array() );
+        }
+    }
+    foreach ( $items as $i ) {
+        if ( $i->menu_item_parent && isset( $tree[ $i->menu_item_parent ] ) ) {
+            $tree[ $i->menu_item_parent ]['children'][] = $i;
+        }
+    }
+    return array_values( $tree );
+}
+
 function mourtzilaki_primary_menu() {
-    $items = mourtzilaki_menu_items();
+    $tree = mourtzilaki_get_menu_tree( 'primary' );
+    if ( empty( $tree ) ) {
+        mourtzilaki_primary_menu_fallback();
+        return;
+    }
+
     $caret = '<svg class="caret" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 
     echo '<ul class="primary-nav">';
-    foreach ( $items as $item ) {
-        $url = mourtzilaki_page_url( $item['slug'] );
+    foreach ( $tree as $node ) {
+        $item     = $node['item'];
+        $children = $node['children'];
+        $classes  = is_array( $item->classes ) ? array_filter( $item->classes ) : array();
+        $is_mega  = in_array( 'is-mega', $classes, true );
 
-        // Manual sub-items (e.g. "Το γραφείο" with 4 sub-pages).
-        $manual_children = ! empty( $item['children'] ) ? $item['children'] : array();
-        // CPT-driven mega-menu (e.g. services).
-        $cpt_children = ! empty( $item['children_cpt'] ) ? get_posts( array(
-            'post_type'      => $item['children_cpt'],
-            'posts_per_page' => -1,
-            'orderby'        => 'menu_order date',
-            'order'          => 'ASC',
-        ) ) : array();
+        $cpt_children = array();
+        if ( $is_mega ) {
+            $cpt_children = get_posts( array(
+                'post_type'      => 'mz_service',
+                'posts_per_page' => -1,
+                'orderby'        => 'menu_order date',
+                'order'          => 'ASC',
+            ) );
+        }
 
-        $has_simple = ! empty( $manual_children );
+        $has_simple = ! empty( $children );
         $has_mega   = ! empty( $cpt_children );
         $has_dd     = $has_simple || $has_mega;
 
         echo '<li class="nav-item' . ( $has_dd ? ' has-dropdown' : '' ) . '">';
-        echo '<a href="' . esc_url( $url ) . '">' . esc_html( $item['label'] );
+        echo '<a href="' . esc_url( $item->url ) . '">' . esc_html( $item->title );
         if ( $has_dd ) { echo $caret; }
         echo '</a>';
 
         if ( $has_mega ) {
             echo '<div class="mega-dropdown" role="region"><div class="mega-grid">';
             foreach ( $cpt_children as $c ) {
-                $desc = function_exists( 'get_field' ) ? (string) get_field( 'description', $c->ID ) : '';
+                $desc = function_exists( 'get_field' ) ? wp_strip_all_tags( (string) get_field( 'description', $c->ID ) ) : '';
                 echo '<a class="mega-item" href="' . esc_url( get_permalink( $c ) ) . '">';
                 echo '<span class="mega-icon" aria-hidden="true">' . mourtzilaki_service_icon( get_the_title( $c ) ) . '</span>';
                 echo '<span class="mega-text">';
@@ -356,17 +390,65 @@ function mourtzilaki_primary_menu() {
                 echo '</span></a>';
             }
             echo '</div>';
-            echo '<a class="mega-foot" href="' . esc_url( $url ) . '">Όλοι οι τομείς εξειδίκευσης <span class="arrow">→</span></a>';
+            echo '<a class="mega-foot" href="' . esc_url( $item->url ) . '">Όλοι οι τομείς εξειδίκευσης <span class="arrow">→</span></a>';
             echo '</div>';
         } elseif ( $has_simple ) {
             echo '<div class="simple-dropdown" role="region">';
+            foreach ( $children as $sub ) {
+                echo '<a class="sd-item" href="' . esc_url( $sub->url ) . '">';
+                echo '<span class="sd-title">' . esc_html( $sub->title ) . '</span>';
+                if ( ! empty( $sub->description ) ) {
+                    echo '<span class="sd-desc">' . esc_html( $sub->description ) . '</span>';
+                }
+                echo '</a>';
+            }
+            echo '</div>';
+        }
+        echo '</li>';
+    }
+    echo '</ul>';
+}
+
+function mourtzilaki_primary_menu_fallback() {
+    $items = mourtzilaki_menu_items();
+    $caret = '<svg class="caret" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+
+    echo '<ul class="primary-nav">';
+    foreach ( $items as $item ) {
+        $url = mourtzilaki_page_url( $item['slug'] );
+        $manual_children = ! empty( $item['children'] ) ? $item['children'] : array();
+        $cpt_children = ! empty( $item['children_cpt'] ) ? get_posts( array(
+            'post_type'      => $item['children_cpt'],
+            'posts_per_page' => -1,
+            'orderby'        => 'menu_order date',
+            'order'          => 'ASC',
+        ) ) : array();
+        $has_simple = ! empty( $manual_children );
+        $has_mega   = ! empty( $cpt_children );
+        $has_dd     = $has_simple || $has_mega;
+
+        echo '<li class="nav-item' . ( $has_dd ? ' has-dropdown' : '' ) . '">';
+        echo '<a href="' . esc_url( $url ) . '">' . esc_html( $item['label'] );
+        if ( $has_dd ) { echo $caret; }
+        echo '</a>';
+        if ( $has_mega ) {
+            echo '<div class="mega-dropdown" role="region"><div class="mega-grid">';
+            foreach ( $cpt_children as $c ) {
+                $desc = function_exists( 'get_field' ) ? wp_strip_all_tags( (string) get_field( 'description', $c->ID ) ) : '';
+                echo '<a class="mega-item" href="' . esc_url( get_permalink( $c ) ) . '">';
+                echo '<span class="mega-icon" aria-hidden="true">' . mourtzilaki_service_icon( get_the_title( $c ) ) . '</span>';
+                echo '<span class="mega-text">';
+                echo '<span class="mega-title">' . esc_html( get_the_title( $c ) ) . '</span>';
+                if ( $desc ) { echo '<span class="mega-desc">' . esc_html( wp_trim_words( $desc, 12, '…' ) ) . '</span>'; }
+                echo '</span></a>';
+            }
+            echo '</div><a class="mega-foot" href="' . esc_url( $url ) . '">Όλοι οι τομείς εξειδίκευσης <span class="arrow">→</span></a></div>';
+        } elseif ( $has_simple ) {
+            echo '<div class="simple-dropdown" role="region">';
             foreach ( $manual_children as $sub ) {
-                $sub_url  = mourtzilaki_page_url( $sub['slug'] );
-                $sub_lab  = $sub['label'];
-                $sub_desc = isset( $sub['desc'] ) ? $sub['desc'] : '';
-                echo '<a class="sd-item" href="' . esc_url( $sub_url ) . '">';
-                echo '<span class="sd-title">' . esc_html( $sub_lab ) . '</span>';
-                if ( $sub_desc ) { echo '<span class="sd-desc">' . esc_html( $sub_desc ) . '</span>'; }
+                echo '<a class="sd-item" href="' . esc_url( mourtzilaki_page_url( $sub['slug'] ) ) . '">';
+                echo '<span class="sd-title">' . esc_html( $sub['label'] ) . '</span>';
+                if ( ! empty( $sub['desc'] ) ) { echo '<span class="sd-desc">' . esc_html( $sub['desc'] ) . '</span>'; }
                 echo '</a>';
             }
             echo '</div>';
@@ -377,6 +459,52 @@ function mourtzilaki_primary_menu() {
 }
 
 function mourtzilaki_mobile_menu() {
+    $tree = mourtzilaki_get_menu_tree( 'primary' );
+    if ( empty( $tree ) ) {
+        mourtzilaki_mobile_menu_fallback();
+        return;
+    }
+
+    $caret = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+
+    echo '<ul class="mobile-nav">';
+    foreach ( $tree as $node ) {
+        $item     = $node['item'];
+        $children = $node['children'];
+        $classes  = is_array( $item->classes ) ? array_filter( $item->classes ) : array();
+        $is_mega  = in_array( 'is-mega', $classes, true );
+
+        $cpt_children = array();
+        if ( $is_mega ) {
+            $cpt_children = get_posts( array(
+                'post_type'      => 'mz_service',
+                'posts_per_page' => -1,
+                'orderby'        => 'menu_order date',
+                'order'          => 'ASC',
+            ) );
+        }
+        $has_dd = ! empty( $children ) || ! empty( $cpt_children );
+
+        if ( $has_dd ) {
+            echo '<li class="m-has-dropdown">';
+            echo '<details class="m-details"><summary><span>' . esc_html( $item->title ) . '</span>' . $caret . '</summary>';
+            echo '<ul class="m-sub">';
+            echo '<li><a class="m-sub-all" href="' . esc_url( $item->url ) . '">' . esc_html( $item->title ) . ' — επισκόπηση</a></li>';
+            foreach ( $children as $sub ) {
+                echo '<li><a href="' . esc_url( $sub->url ) . '">' . esc_html( $sub->title ) . '</a></li>';
+            }
+            foreach ( $cpt_children as $c ) {
+                echo '<li><a href="' . esc_url( get_permalink( $c ) ) . '">' . esc_html( get_the_title( $c ) ) . '</a></li>';
+            }
+            echo '</ul></details></li>';
+        } else {
+            echo '<li><a href="' . esc_url( $item->url ) . '">' . esc_html( $item->title ) . '</a></li>';
+        }
+    }
+    echo '</ul>';
+}
+
+function mourtzilaki_mobile_menu_fallback() {
     $items = mourtzilaki_menu_items();
     $caret = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 
@@ -412,10 +540,281 @@ function mourtzilaki_mobile_menu() {
 }
 
 /**
+ * Render the footer column menu (flat list). Falls back to the same set
+ * of pages that the hard-coded version used.
+ */
+function mourtzilaki_footer_menu() {
+    $tree = mourtzilaki_get_menu_tree( 'footer' );
+    if ( empty( $tree ) ) {
+        $fallback = array(
+            array( 'slug' => 'about',    'label' => 'Το γραφείο' ),
+            array( 'slug' => 'services', 'label' => 'Τομείς εξειδίκευσης' ),
+            array( 'slug' => 'team',     'label' => 'Δικηγόροι' ),
+            array( 'slug' => 'blog',     'label' => 'Άρθρα' ),
+        );
+        echo '<ul>';
+        foreach ( $fallback as $f ) {
+            echo '<li><a href="' . esc_url( mourtzilaki_page_url( $f['slug'] ) ) . '">' . esc_html( $f['label'] ) . '</a></li>';
+        }
+        echo '</ul>';
+        return;
+    }
+
+    echo '<ul>';
+    foreach ( $tree as $node ) {
+        echo '<li><a href="' . esc_url( $node['item']->url ) . '">' . esc_html( $node['item']->title ) . '</a></li>';
+    }
+    echo '</ul>';
+}
+
+/**
  * Excerpt length / read-more.
  */
 add_filter( 'excerpt_length', function () { return 28; }, 999 );
 add_filter( 'excerpt_more',   function () { return '…'; } );
+
+/* =====================================================================
+ * Site Settings — singleton CPT + ACF + admin menu entry.
+ * Keeps brand sub, header CTA, footer column titles & legal text
+ * editable from a single place: WP Admin → Ρυθμίσεις site.
+ * =================================================================== */
+add_action( 'init', function () {
+    register_post_type( 'mz_site', array(
+        'labels' => array(
+            'name'          => 'Ρυθμίσεις site',
+            'singular_name' => 'Ρυθμίσεις site',
+            'edit_item'     => 'Επεξεργασία ρυθμίσεων',
+        ),
+        'public'              => false,
+        'show_ui'             => true,
+        'show_in_menu'        => false,
+        'show_in_admin_bar'   => false,
+        'show_in_nav_menus'   => false,
+        'has_archive'         => false,
+        'rewrite'             => false,
+        'exclude_from_search' => true,
+        'supports'            => array( 'title' ),
+        'capability_type'     => 'page',
+        'map_meta_cap'        => true,
+    ) );
+}, 5 );
+
+/**
+ * Ensure a single Site Settings post exists; cache its ID in an option.
+ */
+function mourtzilaki_settings_id() {
+    $id = (int) get_option( 'mourtzilaki_settings_id' );
+    if ( $id && get_post_status( $id ) ) { return $id; }
+
+    $existing = get_posts( array(
+        'post_type'      => 'mz_site',
+        'posts_per_page' => 1,
+        'post_status'    => 'any',
+    ) );
+    if ( ! empty( $existing ) ) {
+        $id = (int) $existing[0]->ID;
+    } else {
+        $new_id = wp_insert_post( array(
+            'post_type'   => 'mz_site',
+            'post_status' => 'publish',
+            'post_title'  => 'Site Settings',
+        ), true );
+        $id = is_wp_error( $new_id ) ? 0 : (int) $new_id;
+    }
+    if ( $id ) { update_option( 'mourtzilaki_settings_id', $id ); }
+    return $id;
+}
+add_action( 'admin_init', 'mourtzilaki_settings_id' );
+
+/**
+ * Read a settings field, with default fallback.
+ */
+function mourtzilaki_setting( $key, $default = '' ) {
+    static $id = null;
+    if ( null === $id ) { $id = mourtzilaki_settings_id(); }
+    if ( ! $id || ! function_exists( 'get_field' ) ) { return $default; }
+    $val = get_field( $key, $id );
+    if ( is_array( $val ) ) { return $val; }
+    $val = (string) $val;
+    return '' !== trim( $val ) ? $val : $default;
+}
+
+/**
+ * Custom admin menu entry that links straight to the settings post edit page.
+ */
+add_action( 'admin_menu', function () {
+    $id = mourtzilaki_settings_id();
+    if ( ! $id ) { return; }
+    add_menu_page(
+        'Ρυθμίσεις site',
+        'Ρυθμίσεις site',
+        'manage_options',
+        'post.php?post=' . $id . '&action=edit',
+        '',
+        'dashicons-admin-generic',
+        3
+    );
+}, 30 );
+
+// Hide the "Add New" button + "View" link on the singleton edit screen.
+add_filter( 'post_row_actions', function ( $actions, $post ) {
+    if ( $post && 'mz_site' === $post->post_type ) {
+        unset( $actions['view'], $actions['inline hide-if-no-js'], $actions['trash'] );
+    }
+    return $actions;
+}, 10, 2 );
+
+add_action( 'admin_print_styles-post.php', function () {
+    $screen = get_current_screen();
+    if ( $screen && 'mz_site' === $screen->post_type ) {
+        echo '<style>#submitdiv .misc-pub-section:not(.misc-pub-curtime, .misc-pub-section-last), #delete-action, #minor-publishing-actions, #titlediv .inside { } #post-preview, .page-title-action { display:none !important; }</style>';
+    }
+} );
+
+/* ACF: Site Settings field group. */
+add_action( 'acf/init', function () {
+    if ( ! function_exists( 'acf_add_local_field_group' ) ) { return; }
+    $sid = mourtzilaki_settings_id();
+    if ( ! $sid ) { return; }
+
+    acf_add_local_field_group( array(
+        'key'      => 'group_mz_site_settings',
+        'title'    => 'Ρυθμίσεις site',
+        'fields'   => array(
+            array( 'key' => 'field_mz_s_tab_header',   'label' => 'Header',   'type' => 'tab' ),
+            array( 'key' => 'field_mz_s_brand_sub',    'label' => 'Υπότιτλος brand', 'name' => 'brand_sub', 'type' => 'text',
+                   'instructions' => 'Εμφανίζεται κάτω από το όνομα στο header (όταν δεν υπάρχει custom logo). Κενό = να μην εμφανίζεται.' ),
+            array( 'key' => 'field_mz_s_cta_label',    'label' => 'Κείμενο κουμπιού CTA', 'name' => 'header_cta_label', 'type' => 'text', 'placeholder' => 'Κλείστε ραντεβού' ),
+            array( 'key' => 'field_mz_s_cta_url',      'label' => 'URL κουμπιού CTA',     'name' => 'header_cta_url',   'type' => 'url',  'instructions' => 'Π.χ. /contact/ ή απόλυτο URL.' ),
+
+            array( 'key' => 'field_mz_s_tab_footer',   'label' => 'Footer',   'type' => 'tab' ),
+            array( 'key' => 'field_mz_s_foot_brand',   'label' => 'Όνομα brand (override)', 'name' => 'footer_brand', 'type' => 'text',
+                   'instructions' => 'Κενό = όνομα του site από Settings → General.' ),
+            array( 'key' => 'field_mz_s_foot_about',   'label' => 'Κείμενο brand (footer)', 'name' => 'footer_about_text', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+            array( 'key' => 'field_mz_s_foot_t2',      'label' => 'Τίτλος στήλης «Πλοήγηση»',  'name' => 'footer_col_nav_title',     'type' => 'text', 'placeholder' => 'Πλοήγηση' ),
+            array( 'key' => 'field_mz_s_foot_t3',      'label' => 'Τίτλος στήλης «Επικοινωνία»','name' => 'footer_col_contact_title', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+            array( 'key' => 'field_mz_s_foot_t4',      'label' => 'Τίτλος στήλης «Ωράριο»',     'name' => 'footer_col_hours_title',   'type' => 'text', 'placeholder' => 'Ωράριο' ),
+            array( 'key' => 'field_mz_s_foot_legal',   'label' => 'Footer legal (δεξιά)',       'name' => 'footer_legal_right',       'type' => 'text', 'placeholder' => 'Μέλος του Δικηγορικού Συλλόγου Αθηνών' ),
+            array( 'key' => 'field_mz_s_foot_copy',    'label' => 'Copyright text (override)',  'name' => 'footer_copyright',         'type' => 'text',
+                   'instructions' => 'Αν αφεθεί κενό: «© [Έτος] [Όνομα site]. Με την επιφύλαξη παντός δικαιώματος.»' ),
+
+            array( 'key' => 'field_mz_s_tab_contact',  'label' => 'Επικοινωνία', 'type' => 'tab' ),
+            array( 'key' => 'field_mz_s_c_addr',       'label' => 'Διεύθυνση', 'name' => 'contact_address', 'type' => 'textarea', 'rows' => 2,
+                   'instructions' => 'Μία γραμμή ανά πεδίο. Κενό = κράτα την παλιά τιμή από τη Contact page (αν υπάρχει).' ),
+            array( 'key' => 'field_mz_s_c_phone',      'label' => 'Τηλέφωνο',  'name' => 'contact_phone', 'type' => 'text' ),
+            array( 'key' => 'field_mz_s_c_email',      'label' => 'Email',     'name' => 'contact_email', 'type' => 'email' ),
+            array( 'key' => 'field_mz_s_c_hours',      'label' => 'Ωράριο',    'name' => 'contact_hours', 'type' => 'textarea', 'rows' => 3 ),
+        ),
+        'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'mz_site' ) ) ),
+        'menu_order' => 0,
+        'position'   => 'normal',
+        'style'      => 'default',
+        'label_placement' => 'top',
+    ) );
+} );
+
+/* =====================================================================
+ * Auto-seed: build "Mourtzilaki Primary" + "Mourtzilaki Footer" menus
+ * the first time the theme runs, and assign them to the menu locations.
+ * =================================================================== */
+add_action( 'init', 'mourtzilaki_seed_menus', 60 );
+function mourtzilaki_seed_menus() {
+    if ( '1' === get_option( 'mourtzilaki_menus_seeded' ) ) { return; }
+
+    $primary_id = wp_create_nav_menu( 'Mourtzilaki Primary' );
+    if ( is_wp_error( $primary_id ) ) {
+        $existing = wp_get_nav_menu_object( 'Mourtzilaki Primary' );
+        $primary_id = $existing ? (int) $existing->term_id : 0;
+    }
+    $footer_id = wp_create_nav_menu( 'Mourtzilaki Footer' );
+    if ( is_wp_error( $footer_id ) ) {
+        $existing = wp_get_nav_menu_object( 'Mourtzilaki Footer' );
+        $footer_id = $existing ? (int) $existing->term_id : 0;
+    }
+    if ( ! $primary_id || ! $footer_id ) { return; }
+
+    // Only seed items if menu is empty (don't duplicate on repeat).
+    if ( empty( wp_get_nav_menu_items( $primary_id ) ) ) {
+        $about_id = wp_update_nav_menu_item( $primary_id, 0, array(
+            'menu-item-title'  => 'Το γραφείο',
+            'menu-item-url'    => mourtzilaki_page_url( 'about' ),
+            'menu-item-status' => 'publish',
+        ) );
+        $about_subs = array(
+            array( 'about',   'Φιλοσοφία & αξίες',     'Τι μας οδηγεί στη δουλειά μας' ),
+            array( 'team',    'Η ομάδα',               'Ποιοι είμαστε' ),
+            array( 'bio',     'Βιογραφικό',            'Σπουδές, καριέρα, εξειδίκευση' ),
+            array( 'reviews', 'Συστάσεις πελατών',     'Τι λένε όσοι μας εμπιστεύτηκαν' ),
+            array( 'cases',   'Επιλεγμένες υποθέσεις', 'Παραδείγματα δουλειάς μας' ),
+        );
+        foreach ( $about_subs as $sub ) {
+            wp_update_nav_menu_item( $primary_id, 0, array(
+                'menu-item-title'       => $sub[1],
+                'menu-item-url'         => mourtzilaki_page_url( $sub[0] ),
+                'menu-item-description' => $sub[2],
+                'menu-item-parent-id'   => $about_id,
+                'menu-item-status'      => 'publish',
+            ) );
+        }
+
+        wp_update_nav_menu_item( $primary_id, 0, array(
+            'menu-item-title'   => 'Τομείς δικαίου',
+            'menu-item-url'     => mourtzilaki_page_url( 'services' ),
+            'menu-item-classes' => 'is-mega',
+            'menu-item-status'  => 'publish',
+        ) );
+
+        $blog_id = wp_update_nav_menu_item( $primary_id, 0, array(
+            'menu-item-title'  => 'Νομικοί πόροι',
+            'menu-item-url'    => mourtzilaki_page_url( 'blog' ),
+            'menu-item-status' => 'publish',
+        ) );
+        $blog_subs = array(
+            array( 'blog',     'Άρθρα & αναλύσεις', 'Νομοθεσία, νομολογία, ενημέρωση' ),
+            array( 'faq',      'Συχνές ερωτήσεις',  'Απαντήσεις σε όσα ρωτούν' ),
+            array( 'glossary', 'Νομικό λεξικό',     'Βασικοί όροι σε απλή γλώσσα' ),
+        );
+        foreach ( $blog_subs as $sub ) {
+            wp_update_nav_menu_item( $primary_id, 0, array(
+                'menu-item-title'       => $sub[1],
+                'menu-item-url'         => mourtzilaki_page_url( $sub[0] ),
+                'menu-item-description' => $sub[2],
+                'menu-item-parent-id'   => $blog_id,
+                'menu-item-status'      => 'publish',
+            ) );
+        }
+
+        wp_update_nav_menu_item( $primary_id, 0, array(
+            'menu-item-title'  => 'Επικοινωνία',
+            'menu-item-url'    => mourtzilaki_page_url( 'contact' ),
+            'menu-item-status' => 'publish',
+        ) );
+    }
+
+    if ( empty( wp_get_nav_menu_items( $footer_id ) ) ) {
+        $footer_items = array(
+            array( 'about',    'Το γραφείο' ),
+            array( 'services', 'Τομείς εξειδίκευσης' ),
+            array( 'team',     'Δικηγόροι' ),
+            array( 'blog',     'Άρθρα' ),
+        );
+        foreach ( $footer_items as $f ) {
+            wp_update_nav_menu_item( $footer_id, 0, array(
+                'menu-item-title'  => $f[1],
+                'menu-item-url'    => mourtzilaki_page_url( $f[0] ),
+                'menu-item-status' => 'publish',
+            ) );
+        }
+    }
+
+    // Force-assign the seeded menus to the locations on first run.
+    $locations = (array) get_theme_mod( 'nav_menu_locations', array() );
+    $locations['primary'] = $primary_id;
+    $locations['footer']  = $footer_id;
+    set_theme_mod( 'nav_menu_locations', $locations );
+
+    update_option( 'mourtzilaki_menus_seeded', '1' );
+}
 
 /* =====================================================================
  * Testimonial moderation dashboard (admin)
@@ -1385,17 +1784,24 @@ function mourtzilaki_get_contact_info() {
         'hours'   => "Δευτέρα — Παρασκευή\n09:00 — 19:00\nΣάββατο: κατόπιν ραντεβού",
     );
 
+    // Resolution order: Site Settings → Contact page ACF → defaults.
+    $from_contact = array();
     $contact = get_page_by_path( 'contact' );
     if ( $contact && function_exists( 'get_field' ) ) {
-        $cache = array(
-            'address' => trim( (string) get_field( 'contact_address', $contact->ID ) ) ?: $defaults['address'],
-            'phone'   => trim( (string) get_field( 'contact_phone',   $contact->ID ) ) ?: $defaults['phone'],
-            'email'   => trim( (string) get_field( 'contact_email',   $contact->ID ) ) ?: $defaults['email'],
-            'hours'   => trim( (string) get_field( 'contact_hours',   $contact->ID ) ) ?: $defaults['hours'],
+        $from_contact = array(
+            'address' => trim( (string) get_field( 'contact_address', $contact->ID ) ),
+            'phone'   => trim( (string) get_field( 'contact_phone',   $contact->ID ) ),
+            'email'   => trim( (string) get_field( 'contact_email',   $contact->ID ) ),
+            'hours'   => trim( (string) get_field( 'contact_hours',   $contact->ID ) ),
         );
-    } else {
-        $cache = $defaults;
     }
+
+    $cache = array(
+        'address' => mourtzilaki_setting( 'contact_address', $from_contact['address'] ?? '' ) ?: $defaults['address'],
+        'phone'   => mourtzilaki_setting( 'contact_phone',   $from_contact['phone']   ?? '' ) ?: $defaults['phone'],
+        'email'   => mourtzilaki_setting( 'contact_email',   $from_contact['email']   ?? '' ) ?: $defaults['email'],
+        'hours'   => mourtzilaki_setting( 'contact_hours',   $from_contact['hours']   ?? '' ) ?: $defaults['hours'],
+    );
     return $cache;
 }
 
