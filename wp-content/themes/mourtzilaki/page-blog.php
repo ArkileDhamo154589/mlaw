@@ -25,6 +25,13 @@ $query = new WP_Query( array(
 ) );
 
 $categories = get_categories( array( 'hide_empty' => true ) );
+
+$pid = get_queried_object_id();
+$g = function ( $k, $d = '' ) use ( $pid ) {
+    if ( ! function_exists( 'get_field' ) ) { return $d; }
+    $v = (string) get_field( $k, $pid );
+    return '' !== trim( $v ) ? $v : $d;
+};
 ?>
 
 <section class="page-header">
@@ -62,7 +69,7 @@ $categories = get_categories( array( 'hide_empty' => true ) );
                     <?php endif; ?>
                 </div>
                 <div class="blog-featured-body">
-                    <span class="badge">Επιλεγμένο</span>
+                    <span class="badge"><?php echo esc_html( $g( 'blog_featured_label', 'Επιλεγμένο' ) ); ?></span>
                     <span class="meta">
                         <?php echo esc_html( get_the_date( 'd.m.Y', $fp ) ); ?>
                         <?php
@@ -84,8 +91,8 @@ $categories = get_categories( array( 'hide_empty' => true ) );
 <section class="section section-soft">
     <div class="container">
         <div class="section-head reveal reveal-up">
-            <span class="eyebrow">Όλα τα άρθρα</span>
-            <h2 class="h-2 mt-2">Πρόσφατες δημοσιεύσεις.</h2>
+            <span class="eyebrow"><?php echo esc_html( $g( 'blog_all_eyebrow', 'Όλα τα άρθρα' ) ); ?></span>
+            <h2 class="h-2 mt-2"><?php echo esc_html( $g( 'blog_all_title', 'Πρόσφατες δημοσιεύσεις.' ) ); ?></h2>
         </div>
 
         <?php if ( $query->have_posts() ) : ?>
@@ -131,24 +138,30 @@ $categories = get_categories( array( 'hide_empty' => true ) );
     <div class="container container-narrow">
         <div class="newsletter-band reveal reveal-up">
             <div class="nb-text">
-                <span class="eyebrow">Newsletter</span>
-                <h2 class="h-3 mt-2">Λάβετε τις σημαντικές νομικές εξελίξεις στο email σας.</h2>
-                <p class="muted mt-2">Μία φορά τον μήνα. Επιλεγμένες αναλύσεις. Καμία διαφήμιση.</p>
+                <span class="eyebrow"><?php echo esc_html( $g( 'blog_nl_eyebrow', 'Newsletter' ) ); ?></span>
+                <h2 class="h-3 mt-2"><?php echo esc_html( $g( 'blog_nl_title', 'Λάβετε τις σημαντικές νομικές εξελίξεις στο email σας.' ) ); ?></h2>
+                <p class="muted mt-2"><?php echo esc_html( $g( 'blog_nl_text', 'Μία φορά τον μήνα. Επιλεγμένες αναλύσεις. Καμία διαφήμιση.' ) ); ?></p>
             </div>
             <form class="nb-form" onsubmit="return false;" aria-label="Εγγραφή newsletter">
                 <input type="email" placeholder="Το email σας" aria-label="Email" required>
-                <button class="btn btn-primary" type="submit">Εγγραφή <span class="arrow">→</span></button>
+                <button class="btn btn-primary" type="submit"><?php echo esc_html( $g( 'blog_nl_btn', 'Εγγραφή' ) ); ?> <span class="arrow">→</span></button>
             </form>
         </div>
     </div>
 </section>
 
+<?php
+$cta_t  = $g( 'blog_cta_title', 'Έχετε νομικό ερώτημα που απαντά κάποιο άρθρο;' );
+$cta_l  = $g( 'blog_cta_lead',  'Ας το συζητήσουμε στο πλαίσιο ενός εμπιστευτικού ραντεβού. Σας απαντάμε σε 24 ώρες εργάσιμων ημερών.' );
+$cta_bl = $g( 'blog_cta_btn_label', 'Επικοινωνία' );
+$cta_bu = $g( 'blog_cta_btn_url',   mourtzilaki_page_url( 'contact' ) );
+?>
 <section class="cta-band">
     <div class="container row-split">
-        <h2 class="h-2 reveal reveal-left">Έχετε νομικό ερώτημα που απαντά κάποιο άρθρο;</h2>
+        <h2 class="h-2 reveal reveal-left"><?php echo esc_html( $cta_t ); ?></h2>
         <div class="reveal reveal-right">
-            <p>Ας το συζητήσουμε στο πλαίσιο ενός εμπιστευτικού ραντεβού. Σας απαντάμε σε 24 ώρες εργάσιμων ημερών.</p>
-            <p class="mt-4"><a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">Επικοινωνία <span class="arrow">→</span></a></p>
+            <p><?php echo mourtzilaki_field_inline( $cta_l ); ?></p>
+            <?php if ( $cta_bl ) : ?><p class="mt-4"><a class="btn btn-primary" href="<?php echo esc_url( $cta_bu ); ?>"><?php echo esc_html( $cta_bl ); ?> <span class="arrow">→</span></a></p><?php endif; ?>
         </div>
     </div>
 </section>

@@ -24,6 +24,13 @@ foreach ( $faqs as $f ) {
 
 $total_q = count( $faqs );
 $total_c = count( $cat_counts );
+
+$pid = get_queried_object_id();
+$g = function ( $k, $d = '' ) use ( $pid ) {
+    if ( ! function_exists( 'get_field' ) ) { return $d; }
+    $v = (string) get_field( $k, $pid );
+    return '' !== trim( $v ) ? $v : $d;
+};
 ?>
 
 <section class="page-header">
@@ -35,7 +42,7 @@ $total_c = count( $cat_counts );
         <div class="faq-stats reveal reveal-up">
             <div><span class="num"><?php echo esc_html( $total_q ); ?></span><span class="lab">ερωτήσεις</span></div>
             <div><span class="num"><?php echo esc_html( $total_c ); ?></span><span class="lab">κατηγορίες</span></div>
-            <div><span class="num">24h</span><span class="lab">απόκριση</span></div>
+            <div><span class="num"><?php echo esc_html( $g( 'faq_response_label', '24h' ) ); ?></span><span class="lab">απόκριση</span></div>
         </div>
     </div>
 </section>
@@ -102,17 +109,26 @@ $total_c = count( $cat_counts );
     </div>
 </section>
 
+<?php
+$still_eb = $g( 'faq_still_eyebrow', 'Ακόμη ερωτήματα;' );
+$still_t  = $g( 'faq_still_title',   'Δεν βρήκατε αυτό που ψάχνατε;' );
+$still_l  = $g( 'faq_still_lead',    'Ρωτήστε μας απευθείας. Στις περισσότερες περιπτώσεις, ένα σύντομο email αρκεί για να σας προσανατολίσουμε σωστά.' );
+$b1l = $g( 'faq_still_btn1_label', 'Επικοινωνία' );
+$b1u = $g( 'faq_still_btn1_url',   mourtzilaki_page_url( 'contact' ) );
+$b2l = $g( 'faq_still_btn2_label', 'Νομικό λεξικό' );
+$b2u = $g( 'faq_still_btn2_url',   mourtzilaki_page_url( 'glossary' ) );
+?>
 <section class="section section-soft">
     <div class="container container-narrow">
         <div class="faq-still reveal reveal-up">
             <div>
-                <span class="eyebrow">Ακόμη ερωτήματα;</span>
-                <h2 class="h-2 mt-2">Δεν βρήκατε αυτό που ψάχνατε;</h2>
-                <p class="lead mt-4">Ρωτήστε μας απευθείας. Στις περισσότερες περιπτώσεις, ένα σύντομο email αρκεί για να σας προσανατολίσουμε σωστά.</p>
+                <span class="eyebrow"><?php echo esc_html( $still_eb ); ?></span>
+                <h2 class="h-2 mt-2"><?php echo esc_html( $still_t ); ?></h2>
+                <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $still_l ); ?></p>
             </div>
             <div class="faq-still-actions">
-                <a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">Επικοινωνία <span class="arrow">→</span></a>
-                <a class="btn btn-ghost" href="<?php echo esc_url( mourtzilaki_page_url( 'glossary' ) ); ?>">Νομικό λεξικό</a>
+                <?php if ( $b1l ) : ?><a class="btn btn-primary" href="<?php echo esc_url( $b1u ); ?>"><?php echo esc_html( $b1l ); ?> <span class="arrow">→</span></a><?php endif; ?>
+                <?php if ( $b2l ) : ?><a class="btn btn-ghost" href="<?php echo esc_url( $b2u ); ?>"><?php echo esc_html( $b2l ); ?></a><?php endif; ?>
             </div>
         </div>
     </div>

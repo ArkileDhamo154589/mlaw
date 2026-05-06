@@ -13,6 +13,13 @@ $cases = get_posts( array(
     'order'          => 'ASC',
 ) );
 
+$pid = get_queried_object_id();
+$g = function ( $k, $d = '' ) use ( $pid ) {
+    if ( ! function_exists( 'get_field' ) ) { return $d; }
+    $v = (string) get_field( $k, $pid );
+    return '' !== trim( $v ) ? $v : $d;
+};
+
 // Build filter list — services that have at least 1 case.
 $service_counts = array();
 foreach ( $cases as $cs ) {
@@ -79,7 +86,7 @@ foreach ( $cases as $cs ) {
             </div>
 
             <div class="cases-disclaimer reveal reveal-up">
-                <strong>Σημείωση:</strong> Όλες οι παραπάνω υποθέσεις είναι ανωνυμοποιημένες και παρουσιάζονται μόνο για ενημερωτικούς σκοπούς. Δεν συνιστούν υπόσχεση παρόμοιου αποτελέσματος σε άλλες υποθέσεις. Κάθε νομική υπόθεση κρίνεται με βάση τα δικά της δεδομένα.
+                <?php echo mourtzilaki_kses_quote( $g( 'cases_disclaimer', '<p><strong>Σημείωση:</strong> Όλες οι παραπάνω υποθέσεις είναι ανωνυμοποιημένες και παρουσιάζονται μόνο για ενημερωτικούς σκοπούς. Δεν συνιστούν υπόσχεση παρόμοιου αποτελέσματος σε άλλες υποθέσεις. Κάθε νομική υπόθεση κρίνεται με βάση τα δικά της δεδομένα.</p>' ) ); ?>
             </div>
         <?php else : ?>
             <p class="lead muted text-center">Δεν έχουν προστεθεί ακόμη υποθέσεις.</p>
@@ -87,12 +94,18 @@ foreach ( $cases as $cs ) {
     </div>
 </section>
 
+<?php
+$cta_t  = $g( 'cases_cta_title', 'Έχετε παρόμοια υπόθεση;' );
+$cta_l  = $g( 'cases_cta_lead',  'Κάθε υπόθεση έχει τα δικά της δεδομένα. Συζητήστε την υπόθεσή σας μαζί μας σε εμπιστευτικό ραντεβού.' );
+$cta_bl = $g( 'cases_cta_btn_label', 'Επικοινωνία' );
+$cta_bu = $g( 'cases_cta_btn_url',   mourtzilaki_page_url( 'contact' ) );
+?>
 <section class="cta-band">
     <div class="container row-split">
-        <h2 class="h-2 reveal reveal-left">Έχετε παρόμοια υπόθεση;</h2>
+        <h2 class="h-2 reveal reveal-left"><?php echo esc_html( $cta_t ); ?></h2>
         <div class="reveal reveal-right">
-            <p>Κάθε υπόθεση έχει τα δικά της δεδομένα. Συζητήστε την υπόθεσή σας μαζί μας σε εμπιστευτικό ραντεβού.</p>
-            <p class="mt-4"><a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">Επικοινωνία <span class="arrow">→</span></a></p>
+            <p><?php echo mourtzilaki_field_inline( $cta_l ); ?></p>
+            <?php if ( $cta_bl ) : ?><p class="mt-4"><a class="btn btn-primary" href="<?php echo esc_url( $cta_bu ); ?>"><?php echo esc_html( $cta_bl ); ?> <span class="arrow">→</span></a></p><?php endif; ?>
         </div>
     </div>
 </section>

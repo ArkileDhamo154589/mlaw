@@ -7,6 +7,14 @@ get_header();
 $h = mourtzilaki_page_hero();
 $c = mourtzilaki_get_contact_info();
 $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
+
+$pid = get_queried_object_id();
+$g = function ( $k, $d = '' ) use ( $pid ) {
+    if ( ! function_exists( 'get_field' ) ) { return $d; }
+    $v = (string) get_field( $k, $pid );
+    return '' !== trim( $v ) ? $v : $d;
+};
+$social = mourtzilaki_parse_lines( $g( 'contact_social', "linkedin | #\nfacebook | #\ninstagram | #" ) );
 ?>
 
 <section class="page-header">
@@ -26,7 +34,7 @@ $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
                 </span>
                 <span class="cc-label">Τηλέφωνο</span>
                 <span class="cc-value"><?php echo esc_html( $c['phone'] ); ?></span>
-                <span class="cc-hint">Δευτ — Παρ, 09:00 — 19:00</span>
+                <span class="cc-hint"><?php echo esc_html( $g( 'contact_phone_hint', 'Δευτ — Παρ, 09:00 — 19:00' ) ); ?></span>
             </a>
             <a class="cc-tile" href="mailto:<?php echo esc_attr( $c['email'] ); ?>">
                 <span class="cc-icon" aria-hidden="true">
@@ -34,7 +42,7 @@ $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
                 </span>
                 <span class="cc-label">Email</span>
                 <span class="cc-value"><?php echo esc_html( $c['email'] ); ?></span>
-                <span class="cc-hint">Απάντηση σε 24 ώρες</span>
+                <span class="cc-hint"><?php echo esc_html( $g( 'contact_email_hint', 'Απάντηση σε 24 ώρες' ) ); ?></span>
             </a>
             <a class="cc-tile" href="https://www.google.com/maps/search/?api=1&query=<?php echo urlencode( str_replace( "\n", ', ', $c['address'] ) ); ?>" target="_blank" rel="noopener">
                 <span class="cc-icon" aria-hidden="true">
@@ -42,7 +50,7 @@ $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
                 </span>
                 <span class="cc-label">Διεύθυνση</span>
                 <span class="cc-value"><?php echo nl2br( esc_html( $c['address'] ) ); ?></span>
-                <span class="cc-hint">Δείτε στον χάρτη →</span>
+                <span class="cc-hint"><?php echo esc_html( $g( 'contact_addr_hint', 'Δείτε στον χάρτη →' ) ); ?></span>
             </a>
         </div>
     </div>
@@ -52,9 +60,9 @@ $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
     <div class="container">
         <div class="contact-grid">
             <div class="contact-form-wrap reveal reveal-left">
-                <span class="eyebrow">Φόρμα επικοινωνίας</span>
-                <h2 class="h-2 mt-2">Στείλτε μας μήνυμα</h2>
-                <p class="muted mt-2">Απαντάμε εντός 24 ωρών. Όλες οι επικοινωνίες είναι αυστηρά εμπιστευτικές.</p>
+                <span class="eyebrow"><?php echo esc_html( $g( 'contact_form_eyebrow', 'Φόρμα επικοινωνίας' ) ); ?></span>
+                <h2 class="h-2 mt-2"><?php echo esc_html( $g( 'contact_form_title', 'Στείλτε μας μήνυμα' ) ); ?></h2>
+                <p class="muted mt-2"><?php echo esc_html( $g( 'contact_form_subtitle', 'Απαντάμε εντός 24 ωρών. Όλες οι επικοινωνίες είναι αυστηρά εμπιστευτικές.' ) ); ?></p>
 
                 <div class="contact-form mt-6">
                     <?php if ( $cf7_id && function_exists( 'do_shortcode' ) ) :
@@ -67,38 +75,46 @@ $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
 
             <aside class="contact-side reveal reveal-right">
                 <div class="cs-block">
-                    <h3 class="h-4">Ωράριο γραφείου</h3>
+                    <h3 class="h-4"><?php echo esc_html( $g( 'contact_side1_title', 'Ωράριο γραφείου' ) ); ?></h3>
                     <ul class="cs-hours">
-                        <?php foreach ( explode( "\n", $c['hours'] ) as $line ) : ?>
+                        <?php foreach ( explode( "\n", $c['hours'] ) as $line ) : if ( '' === trim( $line ) ) { continue; } ?>
                             <li><?php echo esc_html( $line ); ?></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
 
                 <div class="cs-block">
-                    <h3 class="h-4">Επείγουσες υποθέσεις</h3>
-                    <p class="muted">Σε αυτόφωρη διαδικασία ή κρίσιμο ζήτημα εκτός ωραρίου, καλέστε απευθείας στο τηλέφωνο. Διαθέτουμε εφημερία για επείγοντα ποινικά &amp; ασφαλιστικά μέτρα.</p>
+                    <h3 class="h-4"><?php echo esc_html( $g( 'contact_side2_title', 'Επείγουσες υποθέσεις' ) ); ?></h3>
+                    <p class="muted"><?php echo mourtzilaki_field_inline( $g( 'contact_side2_text', 'Σε αυτόφωρη διαδικασία ή κρίσιμο ζήτημα εκτός ωραρίου, καλέστε απευθείας στο τηλέφωνο. Διαθέτουμε εφημερία για επείγοντα ποινικά & ασφαλιστικά μέτρα.' ) ); ?></p>
                 </div>
 
                 <div class="cs-block">
-                    <h3 class="h-4">Online συνάντηση</h3>
-                    <p class="muted">Πραγματοποιούμε συναντήσεις και μέσω Zoom ή Google Meet για πελάτες εκτός Αθήνας ή εξωτερικού. Στη φόρμα αναφέρετε «online» στο θέμα.</p>
+                    <h3 class="h-4"><?php echo esc_html( $g( 'contact_side3_title', 'Online συνάντηση' ) ); ?></h3>
+                    <p class="muted"><?php echo mourtzilaki_field_inline( $g( 'contact_side3_text', 'Πραγματοποιούμε συναντήσεις και μέσω Zoom ή Google Meet για πελάτες εκτός Αθήνας ή εξωτερικού. Στη φόρμα αναφέρετε «online» στο θέμα.' ) ); ?></p>
                 </div>
 
+                <?php
+                $social_icons = array(
+                    'linkedin'  => '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5V8h3v11zM6.5 6.7c-1 0-1.7-.7-1.7-1.6S5.5 3.5 6.5 3.5s1.7.7 1.7 1.6S7.5 6.7 6.5 6.7zM19 19h-3v-5.6c0-1.4-.5-2.3-1.7-2.3-.9 0-1.5.6-1.7 1.2-.1.2-.1.5-.1.8V19h-3V8h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.5 1.3 3.5 4.1V19z"/></svg>',
+                    'facebook'  => '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12z"/></svg>',
+                    'instagram' => '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>',
+                    'twitter'   => '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231L18.244 2.25z"/></svg>',
+                );
+                if ( ! empty( $social ) ) : ?>
                 <div class="cs-block cs-block-tight">
                     <h3 class="h-4">Κοινωνικά</h3>
                     <div class="cs-social">
-                        <a href="#" aria-label="LinkedIn" target="_blank" rel="noopener">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5V8h3v11zM6.5 6.7c-1 0-1.7-.7-1.7-1.6S5.5 3.5 6.5 3.5s1.7.7 1.7 1.6S7.5 6.7 6.5 6.7zM19 19h-3v-5.6c0-1.4-.5-2.3-1.7-2.3-.9 0-1.5.6-1.7 1.2-.1.2-.1.5-.1.8V19h-3V8h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.5 1.3 3.5 4.1V19z"/></svg>
-                        </a>
-                        <a href="#" aria-label="Facebook" target="_blank" rel="noopener">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12z"/></svg>
-                        </a>
-                        <a href="#" aria-label="Instagram" target="_blank" rel="noopener">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
-                        </a>
+                        <?php foreach ( $social as $row ) :
+                            $platform = strtolower( trim( $row[0] ?? '' ) );
+                            $url      = trim( $row[1] ?? '' );
+                            $icon     = $social_icons[ $platform ] ?? '';
+                            if ( '' === $url || '' === $icon ) { continue; }
+                        ?>
+                            <a href="<?php echo esc_url( $url ); ?>" aria-label="<?php echo esc_attr( ucfirst( $platform ) ); ?>" target="_blank" rel="noopener"><?php echo $icon; ?></a>
+                        <?php endforeach; ?>
                     </div>
                 </div>
+                <?php endif; ?>
             </aside>
         </div>
     </div>
@@ -121,9 +137,9 @@ $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
 
 <section class="section section-soft">
     <div class="container container-narrow text-center">
-        <span class="eyebrow" style="justify-content:center">Διακριτικότητα</span>
-        <h2 class="h-3 mt-2">Όλες οι επικοινωνίες είναι εμπιστευτικές</h2>
-        <p class="lead mt-4">Η δικηγορική εμπιστευτικότητα είναι θεσμοθετημένη υποχρέωση. Καμία πληροφορία δεν διαρρέει εκτός γραφείου, ακόμη κι αν δεν ανατεθεί τελικά η υπόθεση.</p>
+        <span class="eyebrow" style="justify-content:center"><?php echo esc_html( $g( 'contact_bottom_eyebrow', 'Διακριτικότητα' ) ); ?></span>
+        <h2 class="h-3 mt-2"><?php echo esc_html( $g( 'contact_bottom_title', 'Όλες οι επικοινωνίες είναι εμπιστευτικές' ) ); ?></h2>
+        <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $g( 'contact_bottom_lead', 'Η δικηγορική εμπιστευτικότητα είναι θεσμοθετημένη υποχρέωση. Καμία πληροφορία δεν διαρρέει εκτός γραφείου, ακόμη κι αν δεν ανατεθεί τελικά η υπόθεση.' ) ); ?></p>
     </div>
 </section>
 

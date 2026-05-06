@@ -1717,24 +1717,220 @@ add_action( 'acf/init', function () {
         ) );
     }
 
-    /* About page extras ---------------------------------------------- */
+    /* About page (full content) -------------------------------------- */
     $about = get_page_by_path( 'about' );
     if ( $about ) {
         acf_add_local_field_group( array(
             'key'    => 'group_mz_about',
-            'title'  => 'Περιεχόμενο σελίδας',
+            'title'  => 'Περιεχόμενο σελίδας «Το γραφείο»',
             'fields' => array(
-                array( 'key' => 'field_mz_a_story_title',   'label' => 'Τίτλος ενότητας «Ιστορία»', 'name' => 'about_story_title',   'type' => 'text' ),
-                array( 'key' => 'field_mz_a_story_text',    'label' => 'Κείμενο ιστορίας',          'name' => 'about_story_text',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
-                array( 'key' => 'field_mz_a_mission_title', 'label' => 'Τίτλος ενότητας «Αποστολή»','name' => 'about_mission_title', 'type' => 'text' ),
-                array( 'key' => 'field_mz_a_mission_text',  'label' => 'Κείμενο αποστολής',         'name' => 'about_mission_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
-                array( 'key' => 'field_mz_a_values',        'label' => 'Αξίες (μία ανά γραμμή)',
-                       'name' => 'about_values',
-                       'type' => 'textarea',
-                       'rows' => 8,
+                array( 'key' => 'field_mz_a_tab_man',   'label' => 'Manifesto',  'type' => 'tab' ),
+                array( 'key' => 'field_mz_a_man_eb',    'label' => 'Eyebrow',     'name' => 'about_manifesto_eyebrow', 'type' => 'text', 'placeholder' => 'Manifesto' ),
+                array( 'key' => 'field_mz_a_man_text',  'label' => 'Κείμενο',     'name' => 'about_manifesto_text',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_a_man_attr',  'label' => 'Υπογραφή',    'name' => 'about_manifesto_attr',    'type' => 'text' ),
+
+                array( 'key' => 'field_mz_a_tab_story', 'label' => 'Ιστορία', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_a_story_title','label' => 'Eyebrow ενότητας', 'name' => 'about_story_title',  'type' => 'text', 'placeholder' => 'Η ιστορία μας' ),
+                array( 'key' => 'field_mz_a_story_h',    'label' => 'Επικεφαλίδα',     'name' => 'about_story_heading','type' => 'text', 'placeholder' => 'Από μια ιδέα, ένα γραφείο.' ),
+                array( 'key' => 'field_mz_a_story_text', 'label' => 'Κείμενο ιστορίας (πρώτη παράγραφος)', 'name' => 'about_story_text', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_a_story_p2',   'label' => 'Δεύτερη παράγραφος', 'name' => 'about_story_p2', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_a_story_year', 'label' => 'Έτος ίδρυσης (badge)', 'name' => 'about_story_year', 'type' => 'text', 'placeholder' => '2005' ),
+                array( 'key' => 'field_mz_a_story_mini', 'label' => 'Mini στατιστικά (μία ανά γραμμή)',
+                       'name' => 'about_story_mini', 'type' => 'textarea', 'rows' => 4,
+                       'instructions' => 'Φόρμα: Αριθμός | Ετικέτα. Μία γραμμή ανά δείκτη (έως 3).' ),
+
+                array( 'key' => 'field_mz_a_tab_pillars', 'label' => 'Πυλώνες (Αξίες)', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_a_pil_eb',    'label' => 'Eyebrow', 'name' => 'about_pillars_eyebrow', 'type' => 'text', 'placeholder' => 'Πυλώνες' ),
+                array( 'key' => 'field_mz_a_pil_h',     'label' => 'Επικεφαλίδα', 'name' => 'about_pillars_heading', 'type' => 'text', 'placeholder' => 'Οι αρχές που μας οδηγούν' ),
+                array( 'key' => 'field_mz_a_pil_lead',  'label' => 'Lead', 'name' => 'about_pillars_lead', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_a_values',    'label' => 'Αξίες (μία ανά γραμμή)',
+                       'name' => 'about_values', 'type' => 'textarea', 'rows' => 8,
                        'instructions' => 'Φόρμα: Τίτλος | Περιγραφή. Μία αξία ανά γραμμή.' ),
+
+                array( 'key' => 'field_mz_a_tab_diff', 'label' => 'Διαφοροποίηση', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_a_diff_eb',  'label' => 'Eyebrow', 'name' => 'about_diff_eyebrow', 'type' => 'text', 'placeholder' => 'Τι μας ξεχωρίζει' ),
+                array( 'key' => 'field_mz_a_diff_h',   'label' => 'Επικεφαλίδα', 'name' => 'about_diff_heading', 'type' => 'text', 'placeholder' => 'Τρεις διαφορές που έχουν σημασία.' ),
+                array( 'key' => 'field_mz_a_diff_btn_l','label' => 'Κουμπί — κείμενο', 'name' => 'about_diff_btn_label', 'type' => 'text', 'placeholder' => 'Δείτε τους τομείς' ),
+                array( 'key' => 'field_mz_a_diff_btn_u','label' => 'Κουμπί — URL',     'name' => 'about_diff_btn_url',   'type' => 'url' ),
+                array( 'key' => 'field_mz_a_diff_items','label' => 'Διαφορές (μία ανά γραμμή)',
+                       'name' => 'about_diff_items', 'type' => 'textarea', 'rows' => 6,
+                       'instructions' => 'Φόρμα: Εικονίδιο (clock/sun/check) | Τίτλος | Κείμενο. Μία γραμμή ανά διαφορά (3 συνολικά).' ),
+
+                array( 'key' => 'field_mz_a_tab_miss', 'label' => 'Αποστολή', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_a_mission_title','label' => 'Eyebrow ενότητας','name' => 'about_mission_title', 'type' => 'text', 'placeholder' => 'Η αποστολή μας' ),
+                array( 'key' => 'field_mz_a_mission_h',    'label' => 'Επικεφαλίδα',     'name' => 'about_mission_heading','type' => 'text', 'placeholder' => 'Καθαρές αποφάσεις, χωρίς ορολογίες.' ),
+                array( 'key' => 'field_mz_a_mission_text', 'label' => 'Κείμενο αποστολής','name' => 'about_mission_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_a_mission_q',    'label' => 'Founder quote',   'name' => 'about_mission_quote', 'type' => 'textarea', 'rows' => 3 ),
+                array( 'key' => 'field_mz_a_mission_qc',   'label' => 'Citation',        'name' => 'about_mission_quote_cite', 'type' => 'text', 'placeholder' => '— από συζήτηση με νέο πελάτη, 2024' ),
+
+                array( 'key' => 'field_mz_a_tab_cta', 'label' => 'CTA', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_a_cta_h',    'label' => 'Επικεφαλίδα', 'name' => 'about_cta_heading', 'type' => 'text', 'placeholder' => 'Γνωρίστε την ομάδα μας.' ),
+                array( 'key' => 'field_mz_a_cta_lead', 'label' => 'Κείμενο',     'name' => 'about_cta_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_a_cta_b1l',  'label' => 'Κουμπί 1 — κείμενο', 'name' => 'about_cta_btn1_label', 'type' => 'text', 'placeholder' => 'Δείτε την ομάδα' ),
+                array( 'key' => 'field_mz_a_cta_b1u',  'label' => 'Κουμπί 1 — URL',     'name' => 'about_cta_btn1_url',   'type' => 'url' ),
+                array( 'key' => 'field_mz_a_cta_b2l',  'label' => 'Κουμπί 2 — κείμενο', 'name' => 'about_cta_btn2_label', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+                array( 'key' => 'field_mz_a_cta_b2u',  'label' => 'Κουμπί 2 — URL',     'name' => 'about_cta_btn2_url',   'type' => 'url' ),
             ),
             'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $about->ID ) ) ),
+            'position' => 'normal',
+        ) );
+    }
+
+    /* Team page ------------------------------------------------------ */
+    $team = get_page_by_path( 'team' );
+    if ( $team ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_team_page',
+            'title'  => 'Περιεχόμενο σελίδας «Δικηγόροι»',
+            'fields' => array(
+                array( 'key' => 'field_mz_tp_intro_p2',  'label' => 'Συμπληρωματική παράγραφος', 'name' => 'team_lead_p2', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual',
+                       'instructions' => 'Εμφανίζεται κάτω από το βιογραφικό του πρώτου δικηγόρου.' ),
+                array( 'key' => 'field_mz_tp_meta',      'label' => 'Meta στοιχεία (μία ανά γραμμή)', 'name' => 'team_lead_meta', 'type' => 'textarea', 'rows' => 5,
+                       'instructions' => 'Φόρμα: Ετικέτα | Τιμή. Π.χ.: Δικηγορικός Σύλλογος | Αθηνών' ),
+                array( 'key' => 'field_mz_tp_b1l',       'label' => 'Κουμπί 1 — κείμενο', 'name' => 'team_btn1_label', 'type' => 'text', 'placeholder' => 'Πλήρες βιογραφικό' ),
+                array( 'key' => 'field_mz_tp_b1u',       'label' => 'Κουμπί 1 — URL',     'name' => 'team_btn1_url',   'type' => 'url' ),
+                array( 'key' => 'field_mz_tp_b2l',       'label' => 'Κουμπί 2 — κείμενο', 'name' => 'team_btn2_label', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+                array( 'key' => 'field_mz_tp_b2u',       'label' => 'Κουμπί 2 — URL',     'name' => 'team_btn2_url',   'type' => 'url' ),
+                array( 'key' => 'field_mz_tp_net_eb',    'label' => 'Συνεργασίες — eyebrow',     'name' => 'team_net_eyebrow', 'type' => 'text', 'placeholder' => 'Συνεργασίες' ),
+                array( 'key' => 'field_mz_tp_net_t',     'label' => 'Συνεργασίες — επικεφαλίδα', 'name' => 'team_net_title',   'type' => 'text', 'placeholder' => 'Δουλεύουμε με αξιόπιστα δίκτυα.' ),
+                array( 'key' => 'field_mz_tp_net_l',     'label' => 'Συνεργασίες — κείμενο',     'name' => 'team_net_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $team->ID ) ) ),
+            'position' => 'normal',
+        ) );
+    }
+
+    /* Services page -------------------------------------------------- */
+    $services_page = get_page_by_path( 'services' );
+    if ( $services_page ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_services_page',
+            'title'  => 'Περιεχόμενο σελίδας «Τομείς εξειδίκευσης»',
+            'fields' => array(
+                array( 'key' => 'field_mz_sp_proc_eb',   'label' => 'Διαδικασία — eyebrow',     'name' => 'services_proc_eyebrow', 'type' => 'text', 'placeholder' => 'Διαδικασία' ),
+                array( 'key' => 'field_mz_sp_proc_t',    'label' => 'Διαδικασία — επικεφαλίδα', 'name' => 'services_proc_title',   'type' => 'text', 'placeholder' => 'Πώς δουλεύουμε σε κάθε υπόθεση.' ),
+                array( 'key' => 'field_mz_sp_proc_steps','label' => 'Βήματα (μία ανά γραμμή)',
+                       'name' => 'services_proc_steps', 'type' => 'textarea', 'rows' => 8,
+                       'instructions' => 'Φόρμα: Αριθμός | Τίτλος | Περιγραφή. Μία γραμμή ανά βήμα.' ),
+                array( 'key' => 'field_mz_sp_cta_t',     'label' => 'CTA — επικεφαλίδα', 'name' => 'services_cta_title', 'type' => 'text', 'placeholder' => 'Δεν είστε σίγουρος αν η υπόθεσή σας εμπίπτει εδώ;' ),
+                array( 'key' => 'field_mz_sp_cta_l',     'label' => 'CTA — κείμενο',     'name' => 'services_cta_lead',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_sp_cta_bl',    'label' => 'CTA — κουμπί',      'name' => 'services_cta_btn_label', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+                array( 'key' => 'field_mz_sp_cta_bu',    'label' => 'CTA — URL κουμπιού', 'name' => 'services_cta_btn_url',   'type' => 'url' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $services_page->ID ) ) ),
+            'position' => 'normal',
+        ) );
+    }
+
+    /* Cases page ----------------------------------------------------- */
+    $cases_page = get_page_by_path( 'cases' );
+    if ( $cases_page ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_cases_page',
+            'title'  => 'Περιεχόμενο σελίδας «Επιλεγμένες υποθέσεις»',
+            'fields' => array(
+                array( 'key' => 'field_mz_cp_disc',     'label' => 'Disclaimer', 'name' => 'cases_disclaimer', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_cp_cta_t',    'label' => 'CTA — επικεφαλίδα', 'name' => 'cases_cta_title', 'type' => 'text', 'placeholder' => 'Έχετε παρόμοια υπόθεση;' ),
+                array( 'key' => 'field_mz_cp_cta_l',    'label' => 'CTA — κείμενο',     'name' => 'cases_cta_lead',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_cp_cta_bl',   'label' => 'CTA — κουμπί',      'name' => 'cases_cta_btn_label', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+                array( 'key' => 'field_mz_cp_cta_bu',   'label' => 'CTA — URL κουμπιού','name' => 'cases_cta_btn_url',   'type' => 'url' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $cases_page->ID ) ) ),
+            'position' => 'normal',
+        ) );
+    }
+
+    /* FAQ page ------------------------------------------------------- */
+    $faq_page = get_page_by_path( 'faq' );
+    if ( $faq_page ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_faq_page',
+            'title'  => 'Περιεχόμενο σελίδας «Συχνές ερωτήσεις»',
+            'fields' => array(
+                array( 'key' => 'field_mz_fp_resp',     'label' => 'Στατιστικό απόκρισης',
+                       'name' => 'faq_response_label', 'type' => 'text', 'placeholder' => '24h' ),
+                array( 'key' => 'field_mz_fp_still_eb', 'label' => 'Bottom — eyebrow',     'name' => 'faq_still_eyebrow', 'type' => 'text', 'placeholder' => 'Ακόμη ερωτήματα;' ),
+                array( 'key' => 'field_mz_fp_still_t',  'label' => 'Bottom — επικεφαλίδα', 'name' => 'faq_still_title',   'type' => 'text', 'placeholder' => 'Δεν βρήκατε αυτό που ψάχνατε;' ),
+                array( 'key' => 'field_mz_fp_still_l',  'label' => 'Bottom — κείμενο',     'name' => 'faq_still_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_fp_b1l',      'label' => 'Κουμπί 1 — κείμενο', 'name' => 'faq_still_btn1_label', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+                array( 'key' => 'field_mz_fp_b1u',      'label' => 'Κουμπί 1 — URL',     'name' => 'faq_still_btn1_url',   'type' => 'url' ),
+                array( 'key' => 'field_mz_fp_b2l',      'label' => 'Κουμπί 2 — κείμενο', 'name' => 'faq_still_btn2_label', 'type' => 'text', 'placeholder' => 'Νομικό λεξικό' ),
+                array( 'key' => 'field_mz_fp_b2u',      'label' => 'Κουμπί 2 — URL',     'name' => 'faq_still_btn2_url',   'type' => 'url' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $faq_page->ID ) ) ),
+            'position' => 'normal',
+        ) );
+    }
+
+    /* Glossary page -------------------------------------------------- */
+    $glossary_page = get_page_by_path( 'glossary' );
+    if ( $glossary_page ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_glossary_page',
+            'title'  => 'Περιεχόμενο σελίδας «Νομικό λεξικό»',
+            'fields' => array(
+                array( 'key' => 'field_mz_gp_terms', 'label' => 'Όροι', 'name' => 'glossary_terms', 'type' => 'textarea', 'rows' => 30,
+                       'instructions' => 'Φόρμα: Γράμμα | Όρος | Ορισμός. Μία γραμμή ανά όρο. Π.χ.: Α | Αγωγή | Το δικόγραφο με το οποίο…' ),
+                array( 'key' => 'field_mz_gp_cta_t', 'label' => 'CTA — επικεφαλίδα', 'name' => 'glossary_cta_title', 'type' => 'text', 'placeholder' => 'Δεν βρίσκετε όρο που σας απασχολεί;' ),
+                array( 'key' => 'field_mz_gp_cta_l', 'label' => 'CTA — κείμενο',     'name' => 'glossary_cta_lead',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_gp_cta_bl','label' => 'CTA — κουμπί',      'name' => 'glossary_cta_btn_label', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+                array( 'key' => 'field_mz_gp_cta_bu','label' => 'CTA — URL κουμπιού','name' => 'glossary_cta_btn_url',   'type' => 'url' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $glossary_page->ID ) ) ),
+            'position' => 'normal',
+        ) );
+    }
+
+    /* Contact page extras ------------------------------------------- */
+    $contact_page = get_page_by_path( 'contact' );
+    if ( $contact_page ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_contact_page',
+            'title'  => 'Περιεχόμενο σελίδας «Επικοινωνία»',
+            'fields' => array(
+                array( 'key' => 'field_mz_cnp_phone_hint', 'label' => 'Τηλέφωνο — υπότιτλος', 'name' => 'contact_phone_hint', 'type' => 'text', 'placeholder' => 'Δευτ — Παρ, 09:00 — 19:00' ),
+                array( 'key' => 'field_mz_cnp_email_hint', 'label' => 'Email — υπότιτλος',    'name' => 'contact_email_hint', 'type' => 'text', 'placeholder' => 'Απάντηση σε 24 ώρες' ),
+                array( 'key' => 'field_mz_cnp_addr_hint',  'label' => 'Διεύθυνση — υπότιτλος','name' => 'contact_addr_hint',  'type' => 'text', 'placeholder' => 'Δείτε στον χάρτη →' ),
+                array( 'key' => 'field_mz_cnp_form_eb',    'label' => 'Φόρμα — eyebrow',     'name' => 'contact_form_eyebrow', 'type' => 'text', 'placeholder' => 'Φόρμα επικοινωνίας' ),
+                array( 'key' => 'field_mz_cnp_form_t',     'label' => 'Φόρμα — επικεφαλίδα', 'name' => 'contact_form_title',   'type' => 'text', 'placeholder' => 'Στείλτε μας μήνυμα' ),
+                array( 'key' => 'field_mz_cnp_form_s',     'label' => 'Φόρμα — υπότιτλος',   'name' => 'contact_form_subtitle','type' => 'text', 'placeholder' => 'Απαντάμε εντός 24 ωρών...' ),
+                array( 'key' => 'field_mz_cnp_b1_t',       'label' => 'Πλάγια ενότητα 1 — τίτλος', 'name' => 'contact_side1_title', 'type' => 'text', 'placeholder' => 'Ωράριο γραφείου' ),
+                array( 'key' => 'field_mz_cnp_b2_t',       'label' => 'Πλάγια ενότητα 2 — τίτλος', 'name' => 'contact_side2_title', 'type' => 'text', 'placeholder' => 'Επείγουσες υποθέσεις' ),
+                array( 'key' => 'field_mz_cnp_b2_x',       'label' => 'Πλάγια ενότητα 2 — κείμενο','name' => 'contact_side2_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_cnp_b3_t',       'label' => 'Πλάγια ενότητα 3 — τίτλος', 'name' => 'contact_side3_title', 'type' => 'text', 'placeholder' => 'Online συνάντηση' ),
+                array( 'key' => 'field_mz_cnp_b3_x',       'label' => 'Πλάγια ενότητα 3 — κείμενο','name' => 'contact_side3_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_cnp_social',     'label' => 'Social links (μία ανά γραμμή)',
+                       'name' => 'contact_social', 'type' => 'textarea', 'rows' => 4,
+                       'instructions' => 'Φόρμα: Πλατφόρμα (linkedin/facebook/instagram) | URL.' ),
+                array( 'key' => 'field_mz_cnp_disc_eb',    'label' => 'Bottom — eyebrow',     'name' => 'contact_bottom_eyebrow', 'type' => 'text', 'placeholder' => 'Διακριτικότητα' ),
+                array( 'key' => 'field_mz_cnp_disc_t',     'label' => 'Bottom — επικεφαλίδα', 'name' => 'contact_bottom_title',   'type' => 'text', 'placeholder' => 'Όλες οι επικοινωνίες είναι εμπιστευτικές' ),
+                array( 'key' => 'field_mz_cnp_disc_l',     'label' => 'Bottom — κείμενο',     'name' => 'contact_bottom_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $contact_page->ID ) ) ),
+            'position' => 'normal',
+        ) );
+    }
+
+    /* Blog (posts) page --------------------------------------------- */
+    $blog_page = get_page_by_path( 'blog' );
+    if ( $blog_page ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_blog_page',
+            'title'  => 'Περιεχόμενο σελίδας «Άρθρα»',
+            'fields' => array(
+                array( 'key' => 'field_mz_bp_feat_lab', 'label' => 'Featured badge', 'name' => 'blog_featured_label', 'type' => 'text', 'placeholder' => 'Επιλεγμένο' ),
+                array( 'key' => 'field_mz_bp_all_eb',   'label' => 'Όλα τα άρθρα — eyebrow',     'name' => 'blog_all_eyebrow', 'type' => 'text', 'placeholder' => 'Όλα τα άρθρα' ),
+                array( 'key' => 'field_mz_bp_all_t',    'label' => 'Όλα τα άρθρα — επικεφαλίδα', 'name' => 'blog_all_title',   'type' => 'text', 'placeholder' => 'Πρόσφατες δημοσιεύσεις.' ),
+                array( 'key' => 'field_mz_bp_nl_eb',    'label' => 'Newsletter — eyebrow',       'name' => 'blog_nl_eyebrow', 'type' => 'text', 'placeholder' => 'Newsletter' ),
+                array( 'key' => 'field_mz_bp_nl_t',     'label' => 'Newsletter — επικεφαλίδα',   'name' => 'blog_nl_title',   'type' => 'text', 'placeholder' => 'Λάβετε τις σημαντικές νομικές εξελίξεις στο email σας.' ),
+                array( 'key' => 'field_mz_bp_nl_x',     'label' => 'Newsletter — κείμενο',       'name' => 'blog_nl_text',    'type' => 'text', 'placeholder' => 'Μία φορά τον μήνα. Επιλεγμένες αναλύσεις. Καμία διαφήμιση.' ),
+                array( 'key' => 'field_mz_bp_nl_btn',   'label' => 'Newsletter — κουμπί',        'name' => 'blog_nl_btn',     'type' => 'text', 'placeholder' => 'Εγγραφή' ),
+                array( 'key' => 'field_mz_bp_cta_t',    'label' => 'CTA — επικεφαλίδα', 'name' => 'blog_cta_title', 'type' => 'text', 'placeholder' => 'Έχετε νομικό ερώτημα που απαντά κάποιο άρθρο;' ),
+                array( 'key' => 'field_mz_bp_cta_l',    'label' => 'CTA — κείμενο',     'name' => 'blog_cta_lead',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_bp_cta_bl',   'label' => 'CTA — κουμπί',      'name' => 'blog_cta_btn_label', 'type' => 'text', 'placeholder' => 'Επικοινωνία' ),
+                array( 'key' => 'field_mz_bp_cta_bu',   'label' => 'CTA — URL κουμπιού','name' => 'blog_cta_btn_url',   'type' => 'url' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $blog_page->ID ) ) ),
             'position' => 'normal',
         ) );
     }
