@@ -1638,6 +1638,85 @@ add_action( 'acf/init', function () {
         'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'mz_testimonial' ) ) ),
     ) );
 
+    /* Bio page (full content) ---------------------------------------- */
+    $bio = get_page_by_path( 'bio' );
+    if ( $bio ) {
+        acf_add_local_field_group( array(
+            'key'    => 'group_mz_bio',
+            'title'  => 'Περιεχόμενο σελίδας Βιογραφικό',
+            'fields' => array(
+                array( 'key' => 'field_mz_bio_tab_hero', 'label' => 'Hero', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_role_override',     'label' => 'Ιδιότητα (override)',    'name' => 'bio_role_override', 'type' => 'text', 'instructions' => 'Αν αφεθεί κενό, χρησιμοποιείται ο ρόλος του πρώτου δικηγόρου.' ),
+                array( 'key' => 'field_mz_bio_badges',            'label' => 'Hero badges (μία ανά γραμμή)', 'name' => 'bio_hero_badges', 'type' => 'textarea', 'rows' => 4, 'placeholder' => "Δ.Σ.Α.\nΠαρ' Αρείω Πάγω\nLL.M.\nΔιαμεσολαβήτρια" ),
+                array( 'key' => 'field_mz_bio_y_num',             'label' => 'Badge: αριθμός',         'name' => 'bio_years_badge_num',   'type' => 'text', 'placeholder' => '20+' ),
+                array( 'key' => 'field_mz_bio_y_lab',             'label' => 'Badge: ετικέτα',         'name' => 'bio_years_badge_label', 'type' => 'text', 'placeholder' => 'χρόνια εμπειρίας' ),
+                array( 'key' => 'field_mz_bio_cta1_l',            'label' => 'Πρωτεύον CTA: κείμενο',   'name' => 'bio_cta_primary_label', 'type' => 'text', 'placeholder' => 'Κλείστε ραντεβού' ),
+                array( 'key' => 'field_mz_bio_cta1_u',            'label' => 'Πρωτεύον CTA: URL',       'name' => 'bio_cta_primary_url',   'type' => 'url' ),
+                array( 'key' => 'field_mz_bio_cta2_l',            'label' => 'Δευτερεύον CTA: κείμενο', 'name' => 'bio_cta_secondary_label','type' => 'text', 'placeholder' => 'Δείτε την πορεία' ),
+                array( 'key' => 'field_mz_bio_cta2_u',            'label' => 'Δευτερεύον CTA: anchor',  'name' => 'bio_cta_secondary_anchor','type' => 'text', 'placeholder' => '#bio-timeline' ),
+
+                array( 'key' => 'field_mz_bio_tab_stats', 'label' => 'Στατιστικά', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_stats',     'label' => 'Δείκτες (μία ανά γραμμή)',
+                       'name' => 'bio_stats', 'type' => 'textarea', 'rows' => 6,
+                       'instructions' => 'Φόρμα: Αριθμός | Ετικέτα. Μία γραμμή ανά δείκτη (έως 5).' ),
+
+                array( 'key' => 'field_mz_bio_tab_phil', 'label' => 'Φιλοσοφία', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_phil_eb',    'label' => 'Eyebrow', 'name' => 'bio_philosophy_eyebrow', 'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_phil_quote', 'label' => 'Παράθεμα', 'name' => 'bio_philosophy_quote', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_bio_phil_attr',  'label' => 'Υπογραφή', 'name' => 'bio_philosophy_attr', 'type' => 'text', 'instructions' => 'Αν κενό, εμφανίζεται το όνομα του πρώτου δικηγόρου.' ),
+
+                array( 'key' => 'field_mz_bio_tab_tl', 'label' => 'Πορεία (timeline)', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_tl_eb',    'label' => 'Eyebrow', 'name' => 'bio_timeline_eyebrow', 'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_tl_title', 'label' => 'Τίτλος',  'name' => 'bio_timeline_title',   'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_tl_lead',  'label' => 'Lead',    'name' => 'bio_timeline_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_bio_tl',       'label' => 'Σταθμοί (μία γραμμή ανά σταθμό)',
+                       'name' => 'bio_timeline', 'type' => 'textarea', 'rows' => 12,
+                       'instructions' => 'Φόρμα: Έτος | Τύπος (edu/work/cert) | Τίτλος | Οργανισμός | Σημείωση | * (αν θες highlight). Μία γραμμή ανά σταθμό.' ),
+
+                array( 'key' => 'field_mz_bio_tab_exp', 'label' => 'Εξειδίκευση', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_exp_eb',    'label' => 'Eyebrow', 'name' => 'bio_expertise_eyebrow', 'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_exp_title', 'label' => 'Τίτλος',  'name' => 'bio_expertise_title',   'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_exp_t1',    'label' => 'Πρωτεύοντες — επικεφαλίδα', 'name' => 'bio_expertise_t1_title', 'type' => 'text', 'placeholder' => 'Πρωτεύοντες' ),
+                array( 'key' => 'field_mz_bio_exp_l1',    'label' => 'Πρωτεύοντες — tags',         'name' => 'bio_expertise_t1_tags',  'type' => 'textarea', 'rows' => 4, 'instructions' => 'Ένα tag ανά γραμμή.' ),
+                array( 'key' => 'field_mz_bio_exp_t2',    'label' => 'Δευτερεύοντες — επικεφαλίδα','name' => 'bio_expertise_t2_title', 'type' => 'text', 'placeholder' => 'Δευτερεύοντες' ),
+                array( 'key' => 'field_mz_bio_exp_l2',    'label' => 'Δευτερεύοντες — tags',       'name' => 'bio_expertise_t2_tags',  'type' => 'textarea', 'rows' => 4 ),
+                array( 'key' => 'field_mz_bio_exp_t3',    'label' => 'Πρόσθετοι — επικεφαλίδα',    'name' => 'bio_expertise_t3_title', 'type' => 'text', 'placeholder' => 'Πρόσθετοι τομείς' ),
+                array( 'key' => 'field_mz_bio_exp_l3',    'label' => 'Πρόσθετοι — tags',           'name' => 'bio_expertise_t3_tags',  'type' => 'textarea', 'rows' => 4 ),
+
+                array( 'key' => 'field_mz_bio_tab_mem', 'label' => 'Συμμετοχές', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_mem_eb',    'label' => 'Eyebrow', 'name' => 'bio_memberships_eyebrow', 'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_mem_title', 'label' => 'Τίτλος',  'name' => 'bio_memberships_title',   'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_mem',       'label' => 'Συμμετοχές (μία ανά γραμμή)',
+                       'name' => 'bio_memberships', 'type' => 'textarea', 'rows' => 6,
+                       'instructions' => 'Φόρμα: Τίτλος | Σημείωση | Εικονίδιο (building/scale/badge/handshake).' ),
+
+                array( 'key' => 'field_mz_bio_tab_lang', 'label' => 'Γλώσσες', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_lang_eb',    'label' => 'Eyebrow', 'name' => 'bio_languages_eyebrow', 'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_lang_title', 'label' => 'Τίτλος',  'name' => 'bio_languages_title',   'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_lang',       'label' => 'Γλώσσες (μία ανά γραμμή)',
+                       'name' => 'bio_languages', 'type' => 'textarea', 'rows' => 5,
+                       'instructions' => 'Φόρμα: Γλώσσα | Επίπεδο | Ποσοστό (0-100) | CEFR. Π.χ.: Αγγλικά | Άριστη γνώση | 95 | C2.' ),
+
+                array( 'key' => 'field_mz_bio_tab_pub', 'label' => 'Δημοσιεύσεις', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_pub_eb',    'label' => 'Eyebrow', 'name' => 'bio_publications_eyebrow', 'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_pub_title', 'label' => 'Τίτλος',  'name' => 'bio_publications_title',   'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_pub',       'label' => 'Δημοσιεύσεις (μία ανά γραμμή)',
+                       'name' => 'bio_publications', 'type' => 'textarea', 'rows' => 8,
+                       'instructions' => 'Φόρμα: Έτος | Τύπος | Τίτλος | Έκδοση/χώρος.' ),
+
+                array( 'key' => 'field_mz_bio_tab_cta', 'label' => 'CTA', 'type' => 'tab' ),
+                array( 'key' => 'field_mz_bio_cta_eb',    'label' => 'Eyebrow', 'name' => 'bio_cta_eyebrow', 'type' => 'text' ),
+                array( 'key' => 'field_mz_bio_cta_title', 'label' => 'Τίτλος',  'name' => 'bio_cta_title',   'type' => 'text', 'instructions' => 'Μπορείτε να βάλετε {name} για το όνομα του δικηγόρου.' ),
+                array( 'key' => 'field_mz_bio_cta_lead',  'label' => 'Lead',    'name' => 'bio_cta_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
+                array( 'key' => 'field_mz_bio_cta_l1',    'label' => 'Κουμπί φόρμας — κείμενο', 'name' => 'bio_cta_form_label', 'type' => 'text', 'placeholder' => 'Φόρμα επικοινωνίας' ),
+                array( 'key' => 'field_mz_bio_cta_u1',    'label' => 'Κουμπί φόρμας — URL',     'name' => 'bio_cta_form_url',   'type' => 'url' ),
+            ),
+            'location' => array( array( array( 'param' => 'page', 'operator' => '==', 'value' => (string) $bio->ID ) ) ),
+            'position' => 'normal',
+            'menu_order' => 0,
+        ) );
+    }
+
     /* About page extras ---------------------------------------------- */
     $about = get_page_by_path( 'about' );
     if ( $about ) {
