@@ -13,7 +13,7 @@ $cf7_id = (int) get_theme_mod( 'mourtzilaki_cf7_id', 0 );
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Επικοινωνία' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Ας μιλήσουμε για την υπόθεσή σας.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Συμπληρώστε τη φόρμα ή επικοινωνήστε απευθείας. Απαντάμε σε κάθε αίτημα εντός 24 ωρών εργάσιμων ημερών — με απόλυτη διακριτικότητα.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Συμπληρώστε τη φόρμα ή επικοινωνήστε απευθείας. Απαντάμε σε κάθε αίτημα εντός 24 ωρών εργάσιμων ημερών — με απόλυτη διακριτικότητα.' ); ?></p>
     </div>
 </section>
 

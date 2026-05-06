@@ -71,19 +71,79 @@
         });
     }
 
-    /* ---------- Review form character counter ---------- */
-    var rvQuote = doc.getElementById('rv-quote');
-    var rvCounter = doc.querySelector('.rsw-counter');
-    if (rvQuote && rvCounter) {
-        var max = parseInt(rvQuote.getAttribute('maxlength'), 10) || 1500;
-        var update = function () {
-            var n = rvQuote.value.length;
-            rvCounter.textContent = n + ' / ' + max;
-            rvCounter.classList.toggle('is-near', n > max * 0.9);
-        };
-        rvQuote.addEventListener('input', update);
-        update();
-    }
+    /* ---------- Review form: rich text editor + character counter ---------- */
+    (function () {
+        var rte = doc.querySelector('.rsw-rte');
+        if (!rte) { return; }
+        var area    = rte.querySelector('.rsw-rte-area');
+        var hidden  = rte.querySelector('.rsw-rte-hidden');
+        var bar     = rte.querySelector('.rsw-rte-bar');
+        var counter = doc.querySelector('.rsw-counter');
+        var max     = parseInt(rte.getAttribute('data-max'), 10) || 1500;
+
+        // Sync hidden textarea with editor HTML and update counter (counts plain text).
+        function sync() {
+            hidden.value = area.innerHTML.trim() === '<br>' ? '' : area.innerHTML;
+            if (!counter) { return; }
+            var plain = (area.innerText || '').replace(/\s+/g, ' ').trim();
+            counter.textContent = plain.length + ' / ' + max;
+            counter.classList.toggle('is-near', plain.length > max * 0.9);
+            // Required state for native form validation.
+            if (plain.length === 0) {
+                hidden.setCustomValidity('Συμπληρώστε την εμπειρία σας.');
+            } else {
+                hidden.setCustomValidity('');
+            }
+        }
+        area.addEventListener('input', sync);
+        area.addEventListener('blur', sync);
+
+        // Toolbar.
+        bar.addEventListener('mousedown', function (e) {
+            var btn = e.target.closest('button[data-cmd]');
+            if (!btn) { return; }
+            e.preventDefault();
+            var cmd = btn.getAttribute('data-cmd');
+            area.focus();
+            if (cmd === 'createLink') {
+                var url = win.prompt('URL συνδέσμου:', 'https://');
+                if (url) { doc.execCommand('createLink', false, url); }
+            } else {
+                doc.execCommand(cmd, false, null);
+            }
+            sync();
+        });
+
+        // Strip pasted styling — keep plain text and basic structure.
+        area.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var text = (e.clipboardData || win.clipboardData).getData('text/plain');
+            doc.execCommand('insertText', false, text);
+        });
+
+        // Hard cap by plain-text length.
+        area.addEventListener('keydown', function (e) {
+            if (e.metaKey || e.ctrlKey || e.altKey) { return; }
+            var plain = (area.innerText || '').replace(/\s+/g, ' ').trim();
+            if (plain.length >= max && e.key.length === 1) {
+                e.preventDefault();
+            }
+        });
+
+        // Ensure links have safe attrs on submit.
+        var form = rte.closest('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                area.querySelectorAll('a[href]').forEach(function (a) {
+                    a.setAttribute('rel', 'nofollow noopener ugc');
+                    a.setAttribute('target', '_blank');
+                });
+                sync();
+            });
+        }
+
+        sync();
+    })();
 
     /* ---------- Sticky header shadow on scroll ---------- */
     var header = doc.getElementById('site-header');

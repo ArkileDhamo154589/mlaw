@@ -127,7 +127,7 @@ while ( have_posts() ) : the_post();
                 // Inject pull quote roughly in the middle.
                 $paragraphs = explode( '</p>', $content );
                 $mid = (int) floor( count( $paragraphs ) / 2 );
-                $pull_html = '<aside class="art-pullquote" aria-hidden="true">' . esc_html( $f_pull ) . '</aside>';
+                $pull_html = '<aside class="art-pullquote" aria-hidden="true">' . mourtzilaki_field_inline( $f_pull ) . '</aside>';
                 array_splice( $paragraphs, $mid, 0, array( $pull_html ) );
                 echo implode( '</p>', $paragraphs );
             } else {
@@ -150,7 +150,7 @@ while ( have_posts() ) : the_post();
         <?php endif; endif; ?>
 
         <?php if ( $f_disc ) : ?>
-            <p class="art-disclaimer"><strong>Σημείωση:</strong> <?php echo esc_html( $f_disc ); ?></p>
+            <p class="art-disclaimer"><strong>Σημείωση:</strong> <?php echo mourtzilaki_field_inline( $f_disc ); ?></p>
         <?php endif; ?>
 
         <?php $tags = get_the_tags(); if ( $tags ) : ?>
@@ -173,7 +173,7 @@ while ( have_posts() ) : the_post();
                 <span class="eyebrow">Συντάκτης</span>
                 <h3 class="h-3 mt-2"><?php echo esc_html( $member['name'] ); ?></h3>
                 <p class="muted mt-2"><?php echo esc_html( $member['role'] ); ?></p>
-                <p class="mt-4"><?php echo esc_html( $member['short_bio'] ); ?></p>
+                <p class="mt-4"><?php echo mourtzilaki_field_inline( $member['short_bio'] ); ?></p>
                 <p class="mt-4">
                     <a class="btn btn-ghost" href="<?php echo esc_url( mourtzilaki_page_url( 'bio' ) ); ?>">Πλήρες βιογραφικό <span class="arrow">→</span></a>
                 </p>
@@ -221,7 +221,7 @@ while ( have_posts() ) : the_post();
     <div class="container row-split">
         <h2 class="h-2 reveal reveal-left"><?php echo esc_html( $f_cta_t !== '' ? $f_cta_t : 'Έχετε υπόθεση σχετική με αυτό;' ); ?></h2>
         <div class="reveal reveal-right">
-            <p><?php echo esc_html( $f_cta_x !== '' ? $f_cta_x : 'Ας τη συζητήσουμε στο πλαίσιο ενός εμπιστευτικού ραντεβού. Σας απαντάμε σε 24 ώρες εργάσιμων ημερών.' ); ?></p>
+            <p><?php echo $f_cta_x !== '' ? mourtzilaki_field_inline( $f_cta_x ) : esc_html( 'Ας τη συζητήσουμε στο πλαίσιο ενός εμπιστευτικού ραντεβού. Σας απαντάμε σε 24 ώρες εργάσιμων ημερών.' ); ?></p>
             <p class="mt-4"><a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">Επικοινωνία <span class="arrow">→</span></a></p>
         </div>
     </div>

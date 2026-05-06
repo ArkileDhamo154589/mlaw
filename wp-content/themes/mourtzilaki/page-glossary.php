@@ -62,7 +62,7 @@ $terms = array(
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Νομικό λεξικό' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Βασικοί νομικοί όροι, σε απλή γλώσσα.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Ένα γρήγορο γλωσσάρι με τους όρους που συναντάει συχνότερα ένας ιδιώτης ή επιχειρηματίας στις υποθέσεις του.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Ένα γρήγορο γλωσσάρι με τους όρους που συναντάει συχνότερα ένας ιδιώτης ή επιχειρηματίας στις υποθέσεις του.' ); ?></p>
     </div>
 </section>
 

@@ -16,7 +16,7 @@ $error = isset( $_GET['review_error'] ) ? sanitize_text_field( wp_unslash( $_GET
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Συστάσεις' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Τι λένε όσοι μας εμπιστεύτηκαν.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Συστάσεις πελατών που μας εμπιστεύθηκαν τις υποθέσεις τους — από ιδιώτες μέχρι μεσαίες και μεγάλες επιχειρήσεις. Όλες δημοσιεύονται με ρητή έγγραφη συναίνεση.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Συστάσεις πελατών που μας εμπιστεύθηκαν τις υποθέσεις τους — από ιδιώτες μέχρι μεσαίες και μεγάλες επιχειρήσεις. Όλες δημοσιεύονται με ρητή έγγραφη συναίνεση.' ); ?></p>
 
         <div class="reviews-stats reveal reveal-up">
             <div class="rs-item">
@@ -47,7 +47,7 @@ $error = isset( $_GET['review_error'] ) ? sanitize_text_field( wp_unslash( $_GET
                         <div class="review-stars" aria-label="5 στα 5">
                             <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                         </div>
-                        <blockquote class="review-quote"><?php echo esc_html( $t['quote'] ); ?></blockquote>
+                        <blockquote class="review-quote"><?php echo mourtzilaki_kses_quote( $t['quote'] ); ?></blockquote>
                         <footer class="review-attr">
                             <div class="review-name"><?php echo esc_html( $t['name'] ); ?></div>
                             <?php if ( ! empty( $t['role'] ) ) : ?>
@@ -114,7 +114,22 @@ $error = isset( $_GET['review_error'] ) ? sanitize_text_field( wp_unslash( $_GET
 
                 <div class="rsw-field">
                     <label for="rv-quote">Η εμπειρία σας *</label>
-                    <textarea id="rv-quote" name="reviewer_quote" required maxlength="1500" rows="6" placeholder="Περιγράψτε σύντομα τη συνεργασία μαζί μας..."></textarea>
+                    <div class="rsw-rte" data-max="1500">
+                        <div class="rsw-rte-bar" role="toolbar" aria-label="Μορφοποίηση">
+                            <button type="button" data-cmd="bold" title="Έντονα (Ctrl+B)"><b>B</b></button>
+                            <button type="button" data-cmd="italic" title="Πλάγια (Ctrl+I)"><i>I</i></button>
+                            <button type="button" data-cmd="underline" title="Υπογραμμισμένα (Ctrl+U)"><u>U</u></button>
+                            <span class="rsw-rte-sep" aria-hidden="true"></span>
+                            <button type="button" data-cmd="insertUnorderedList" title="Λίστα">•</button>
+                            <button type="button" data-cmd="insertOrderedList" title="Αριθμημένη λίστα">1.</button>
+                            <span class="rsw-rte-sep" aria-hidden="true"></span>
+                            <button type="button" data-cmd="createLink" title="Σύνδεσμος">↗</button>
+                            <button type="button" data-cmd="removeFormat" title="Καθαρισμός μορφοποίησης">✕</button>
+                        </div>
+                        <div class="rsw-rte-area" id="rv-quote" contenteditable="true"
+                             data-placeholder="Περιγράψτε σύντομα τη συνεργασία μαζί μας..."></div>
+                        <textarea name="reviewer_quote" class="rsw-rte-hidden" required></textarea>
+                    </div>
                     <span class="rsw-counter" aria-live="polite">0 / 1500</span>
                 </div>
 

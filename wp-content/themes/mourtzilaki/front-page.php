@@ -30,7 +30,7 @@ $lawyer_meta   = mourtzilaki_parse_lines( $f( 'home_lawyer_meta' ) );
                 <div class="slide-inner">
                     <?php if ( ! empty( $s['eyebrow'] ) ) : ?><span class="eyebrow"><?php echo esc_html( $s['eyebrow'] ); ?></span><?php endif; ?>
                     <h1 class="h-display"><?php echo esc_html( $s['title'] ); ?></h1>
-                    <?php if ( ! empty( $s['lead'] ) ) : ?><p class="lead"><?php echo esc_html( $s['lead'] ); ?></p><?php endif; ?>
+                    <?php if ( ! empty( $s['lead'] ) ) : ?><p class="lead"><?php echo mourtzilaki_field_inline( $s['lead'] ); ?></p><?php endif; ?>
                     <div class="hero-cta">
                         <a class="btn btn-primary" href="<?php echo esc_url( ! empty( $s['cta_url'] ) ? $s['cta_url'] : mourtzilaki_page_url( 'contact' ) ); ?>">
                             <?php echo esc_html( ! empty( $s['cta_label'] ) ? $s['cta_label'] : 'Κλείστε ραντεβού' ); ?> <span class="arrow">→</span>
@@ -96,16 +96,12 @@ $lawyer_meta   = mourtzilaki_parse_lines( $f( 'home_lawyer_meta' ) );
                 <h2 class="h-1 mt-2"><?php echo esc_html( $f( 'home_about_title' ) ); ?></h2>
 
                 <?php $quote = $f( 'home_philosophy_quote' ); if ( $quote ) : ?>
-                    <blockquote class="pull-quote"><?php echo esc_html( $quote ); ?></blockquote>
+                    <blockquote class="pull-quote"><?php echo mourtzilaki_kses_quote( $quote ); ?></blockquote>
                 <?php endif; ?>
 
-                <?php
-                $about_text = $f( 'home_about_text' );
-                foreach ( preg_split( "/\n\n+/", $about_text ) as $para ) {
-                    if ( '' === trim( $para ) ) { continue; }
-                    printf( '<p>%s</p>', esc_html( $para ) );
-                }
-                ?>
+                <?php $about_text = $f( 'home_about_text' ); if ( $about_text ) : ?>
+                    <?php echo mourtzilaki_kses_quote( $about_text ); ?>
+                <?php endif; ?>
 
                 <div class="philosophy-cta">
                     <a class="btn-link" href="<?php echo esc_url( mourtzilaki_page_url( 'about' ) ); ?>">Διαβάστε τις αξίες μας</a>
@@ -135,7 +131,7 @@ $lawyer_meta   = mourtzilaki_parse_lines( $f( 'home_lawyer_meta' ) );
                 <a class="practice-tile reveal reveal-up reveal-d<?php echo (int) min( ( $i % 4 ) + 1, 6 ); ?>" href="<?php echo esc_url( get_permalink( $svc ) ); ?>">
                     <span class="pt-icon" aria-hidden="true"><?php echo mourtzilaki_service_icon( get_the_title( $svc ) ); ?></span>
                     <h3 class="pt-title"><?php echo esc_html( get_the_title( $svc ) ); ?></h3>
-                    <p class="pt-desc"><?php echo esc_html( wp_trim_words( $short, 18, '…' ) ); ?></p>
+                    <p class="pt-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $short ), 18, '…' ) ); ?></p>
                     <span class="pt-arrow" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
@@ -178,7 +174,7 @@ $lawyer_meta   = mourtzilaki_parse_lines( $f( 'home_lawyer_meta' ) );
         <div class="section-head reveal reveal-up" style="text-align:center; margin-left:auto; margin-right:auto;">
             <span class="eyebrow" style="justify-content:center;"><?php echo esc_html( $f( 'home_process_eyebrow' ) ); ?></span>
             <h2 class="h-2 mt-2"><?php echo esc_html( $f( 'home_process_title' ) ); ?></h2>
-            <p class="lead mt-4"><?php echo esc_html( $f( 'home_process_lead' ) ); ?></p>
+            <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $f( 'home_process_lead' ) ); ?></p>
         </div>
 
         <div class="process-strip">
@@ -206,7 +202,7 @@ $lawyer_meta   = mourtzilaki_parse_lines( $f( 'home_lawyer_meta' ) );
             <?php foreach ( $testimonials as $t ) : ?>
                 <div class="ts-slide">
                     <span class="quote-mark" aria-hidden="true">“</span>
-                    <blockquote><?php echo esc_html( $t['quote'] ); ?></blockquote>
+                    <blockquote><?php echo mourtzilaki_kses_quote( $t['quote'] ); ?></blockquote>
                     <footer class="t-attr">
                         <div>
                             <div class="t-name"><?php echo esc_html( $t['name'] ); ?></div>
@@ -237,7 +233,7 @@ $lawyer_meta   = mourtzilaki_parse_lines( $f( 'home_lawyer_meta' ) );
             <div class="lf-content reveal reveal-right">
                 <span class="eyebrow"><?php echo esc_html( $f( 'home_lawyer_eyebrow' ) ); ?></span>
                 <h2 class="h-1 mt-2"><?php echo esc_html( $m['name'] ); ?></h2>
-                <p class="lead mt-4"><?php echo esc_html( $f( 'home_lawyer_lead', $m['bio'] ) ); ?></p>
+                <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $f( 'home_lawyer_lead', $m['bio'] ) ); ?></p>
 
                 <?php if ( ! empty( $lawyer_meta ) ) : ?>
                 <div class="lf-meta">
@@ -337,7 +333,7 @@ if ( $recent->have_posts() ) : ?>
         <div class="cta-final-inner reveal reveal-fade">
             <span class="eyebrow" style="color:var(--gold);"><?php echo esc_html( $f( 'home_cta_eyebrow' ) ); ?></span>
             <h2 class="h-display mt-2" style="max-width: 22ch;"><?php echo esc_html( $f( 'home_cta_title' ) ); ?></h2>
-            <p class="lead mt-4" style="max-width: 60ch;"><?php echo esc_html( $f( 'home_cta_text' ) ); ?></p>
+            <p class="lead mt-4" style="max-width: 60ch;"><?php echo mourtzilaki_field_inline( $f( 'home_cta_text' ) ); ?></p>
             <div class="cta-final-actions mt-6">
                 <a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">Κλείστε ραντεβού <span class="arrow">→</span></a>
                 <?php $phone = mourtzilaki_get_contact_info()['phone']; ?>

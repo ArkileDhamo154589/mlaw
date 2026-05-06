@@ -439,13 +439,28 @@ add_action( 'admin_post_mourtzilaki_approve_review', 'mourtzilaki_handle_review_
 add_action( 'admin_post_mourtzilaki_reject_review',  'mourtzilaki_handle_review_action' );
 function mourtzilaki_handle_review_action() {
     if ( ! current_user_can( 'edit_posts' ) ) { wp_die( 'forbidden' ); }
-    $id = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
-    $nonce = isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '';
+    $req = ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] ) ? $_POST : $_GET;
+    $id    = isset( $req['id'] )       ? (int) $req['id'] : 0;
+    $nonce = isset( $req['_wpnonce'] ) ? wp_unslash( $req['_wpnonce'] ) : '';
     if ( ! $id || ! wp_verify_nonce( $nonce, 'mz_review_action_' . $id ) ) { wp_die( 'bad nonce' ); }
 
     $action = current_action();
     $done = '';
     if ( 'admin_post_mourtzilaki_approve_review' === $action ) {
+        // If admin edited the quote inline, save it before publishing.
+        if ( isset( $_POST['mz_quote'] ) && function_exists( 'update_field' ) ) {
+            $quote = mourtzilaki_kses_quote( wp_unslash( $_POST['mz_quote'] ) );
+            update_field( 'quote', $quote, $id );
+        }
+        if ( isset( $_POST['mz_role'] ) ) {
+            update_field( 'role', sanitize_text_field( wp_unslash( $_POST['mz_role'] ) ), $id );
+        }
+        if ( isset( $_POST['mz_name'] ) ) {
+            $new_name = sanitize_text_field( wp_unslash( $_POST['mz_name'] ) );
+            if ( '' !== $new_name ) {
+                wp_update_post( array( 'ID' => $id, 'post_title' => $new_name ) );
+            }
+        }
         wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ) );
         $done = 'approved';
     } elseif ( 'admin_post_mourtzilaki_reject_review' === $action ) {
@@ -472,168 +487,307 @@ function mourtzilaki_render_review_moderation() {
     ?>
     <style>
         .toplevel_page_mz-reviews-moderation #wpcontent,
-        .mz-testimonial_page_mz-reviews-moderation #wpcontent { padding-left: 0 !important; }
-        .mz-mod-wrap {
-            --mod-ink: #f5ecd9; --mod-ink-2: #b9af96; --mod-muted: #6c6555;
-            --mod-line: rgba(255,255,255,0.08); --mod-line-2: rgba(255,255,255,0.04);
-            --mod-bg: #0d0c0a; --mod-bg-2: #15130f; --mod-bg-3: #1d1a14;
-            --mod-gold: #c5a572; --mod-gold-2: #d4b67e; --mod-gold-3: #8e6e2a;
-            --mod-green: #4ade80; --mod-red: #f87171;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            color: var(--mod-ink); background: var(--mod-bg);
-            min-height: 100vh; margin: 0 0 0 -20px; padding: 24px 32px 60px;
+        .mz-testimonial_page_mz-reviews-moderation #wpcontent { padding-left: 0 !important; background: #faf6ee; }
+        .mz-mod {
+            --mz-ink: #1f1a14;
+            --mz-ink-2: #4a3f31;
+            --mz-muted: #8a7c68;
+            --mz-line: #e6dfd2;
+            --mz-line-2: #efe9dc;
+            --mz-bg: #ffffff;
+            --mz-bg-2: #faf6ee;
+            --mz-bg-3: #f3ebd9;
+            --mz-gold: #b08a3e;
+            --mz-gold-2: #8e6e2a;
+            --mz-green: #0a7c3e;
+            --mz-red: #b3261e;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            color: var(--mz-ink);
+            background: var(--mz-bg-2);
+            min-height: 100vh;
+            margin: 0 0 0 -20px;
+            padding: 28px clamp(20px, 4vw, 44px) 80px;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .mz-mod-wrap *, .mz-mod-wrap *::before, .mz-mod-wrap *::after { box-sizing: border-box; }
-        .mz-mod-hero {
-            position: relative; padding: 40px 36px; margin-bottom: 28px;
-            border: 1px solid var(--mod-line); border-radius: 6px; overflow: hidden;
-            background:
-                radial-gradient(60% 80% at 100% 0%, rgba(197,165,114,0.15), transparent 60%),
-                linear-gradient(135deg, var(--mod-bg-3), var(--mod-bg-2));
-            display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap;
+        .mz-mod *, .mz-mod *::before, .mz-mod *::after { box-sizing: border-box; }
+        .mz-mod a { color: var(--mz-ink); }
+
+        /* Top header */
+        .mz-mod__head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 32px;
+            flex-wrap: wrap;
+            padding: 8px 4px 28px;
+            border-bottom: 1px solid var(--mz-line);
+            margin-bottom: 28px;
         }
-        .mz-mod-eyebrow {
-            display: inline-flex; align-items: center; gap: 8px;
-            font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-            color: var(--mod-gold); font-weight: 500;
+        .mz-mod__eyebrow {
+            display: inline-flex; align-items: center; gap: 10px;
+            font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+            color: var(--mz-gold-2); font-weight: 600; margin-bottom: 12px;
         }
-        .mz-mod-eyebrow .dot {
-            width: 8px; height: 8px; border-radius: 50%; background: var(--mod-gold);
-            box-shadow: 0 0 0 0 rgba(197,165,114,0.5);
-            animation: mzModPulse 2s infinite;
+        .mz-mod__eyebrow::before {
+            content: ""; width: 22px; height: 1px; background: currentColor; display: inline-block;
         }
-        @keyframes mzModPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(197,165,114,0.5); }
-            70%      { box-shadow: 0 0 0 10px rgba(197,165,114,0); }
+        .mz-mod__title {
+            font-size: clamp(26px, 3vw, 34px);
+            line-height: 1.1;
+            letter-spacing: -0.018em;
+            font-weight: 500;
+            margin: 0 0 10px;
+            color: var(--mz-ink);
         }
-        .mz-mod-hero h1 { font-size: 32px; line-height: 1.15; color: #fff; margin: 14px 0 8px; font-weight: 500; letter-spacing: -0.015em; }
-        .mz-mod-hero p { color: var(--mod-ink-2); font-size: 15px; max-width: 60ch; margin: 0; }
-        .mz-mod-counts { display: flex; gap: 18px; }
-        .mz-mod-count {
-            text-align: right; padding: 12px 18px;
-            background: rgba(255,255,255,0.03); border: 1px solid var(--mod-line); border-radius: 4px;
+        .mz-mod__lead {
+            color: var(--mz-ink-2); font-size: 14.5px; line-height: 1.6;
+            max-width: 64ch; margin: 0;
         }
-        .mz-mod-count .num { font-size: 24px; font-weight: 600; color: #fff; line-height: 1; }
-        .mz-mod-count .lab { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mod-muted); margin-top: 4px; }
-        .mz-mod-count.pending .num { color: var(--mod-gold); }
-        .mz-mod-msg {
-            margin-bottom: 20px; padding: 14px 20px;
-            border-left: 3px solid var(--mod-green); background: var(--mod-bg-2);
-            border: 1px solid var(--mod-line); border-left: 3px solid var(--mod-green);
-            color: var(--mod-ink); border-radius: 4px;
+        .mz-mod__lead code {
+            background: var(--mz-bg-3); padding: 1px 6px; border-radius: 2px;
+            font-size: 12.5px; color: var(--mz-ink);
         }
-        .mz-mod-msg.rejected { border-left-color: var(--mod-red); }
-        .mz-mod-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px;
+        .mz-mod__stats {
+            display: flex; gap: 0;
+            border: 1px solid var(--mz-line);
+            border-radius: 2px;
+            background: var(--mz-bg);
+            overflow: hidden;
         }
-        .mz-mod-card {
-            background: var(--mod-bg-2); border: 1px solid var(--mod-line); border-radius: 6px;
-            padding: 24px; display: flex; flex-direction: column; gap: 16px; position: relative;
-            transition: border-color .25s, transform .25s;
+        .mz-mod__stat {
+            padding: 14px 22px;
+            border-right: 1px solid var(--mz-line);
+            min-width: 110px;
         }
-        .mz-mod-card:hover { border-color: rgba(197,165,114,0.3); transform: translateY(-2px); }
-        .mz-mod-card-h {
-            display: flex; align-items: center; gap: 14px;
-            padding-bottom: 14px; border-bottom: 1px solid var(--mod-line-2);
+        .mz-mod__stat:last-child { border-right: 0; }
+        .mz-mod__stat .n {
+            font-size: 26px; font-weight: 500; line-height: 1; letter-spacing: -0.02em;
+            color: var(--mz-ink); font-variant-numeric: tabular-nums;
         }
-        .mz-mod-avatar {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--mod-gold), var(--mod-gold-3));
-            color: var(--mod-bg); display: inline-flex; align-items: center; justify-content: center;
-            font-weight: 600; font-size: 16px; flex-shrink: 0;
+        .mz-mod__stat .l {
+            font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+            color: var(--mz-muted); margin-top: 6px;
         }
-        .mz-mod-meta { flex: 1; min-width: 0; }
-        .mz-mod-name { color: #fff; font-size: 15px; font-weight: 500; }
-        .mz-mod-role { color: var(--mod-muted); font-size: 12px; margin-top: 2px; }
-        .mz-mod-time { color: var(--mod-muted); font-size: 11px; letter-spacing: 0.06em; }
-        .mz-mod-quote {
-            color: var(--mod-ink); font-size: 14px; line-height: 1.6;
-            font-style: italic; padding: 0 0 0 16px; border-left: 2px solid var(--mod-gold);
-            margin: 0;
+        .mz-mod__stat--pending .n { color: var(--mz-gold-2); }
+
+        /* Toast / inline message */
+        .mz-mod__msg {
+            margin-bottom: 24px;
+            padding: 14px 18px;
+            border-radius: 2px;
+            border: 1px solid var(--mz-line);
+            border-left: 3px solid var(--mz-green);
+            background: var(--mz-bg);
+            font-size: 14px;
+            color: var(--mz-ink-2);
+            display: flex; align-items: center; gap: 10px;
         }
-        .mz-mod-email {
-            font-size: 12px; color: var(--mod-ink-2);
-            display: flex; align-items: center; gap: 6px;
-        }
-        .mz-mod-email a { color: var(--mod-gold-2); text-decoration: none; }
-        .mz-mod-email a:hover { color: #fff; }
-        .mz-mod-actions {
-            display: flex; gap: 8px; padding-top: 16px;
-            border-top: 1px solid var(--mod-line-2); margin-top: auto;
-        }
-        .mz-mod-btn {
-            flex: 1; padding: 10px 16px; border-radius: 4px; border: 0;
-            font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
-            cursor: pointer; text-decoration: none; text-align: center;
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-            transition: background .2s, color .2s;
-        }
-        .mz-mod-btn-approve {
-            background: linear-gradient(135deg, var(--mod-gold), var(--mod-gold-3));
-            color: var(--mod-bg); font-weight: 600;
-        }
-        .mz-mod-btn-approve:hover { background: var(--mod-gold-2); color: var(--mod-bg); }
-        .mz-mod-btn-reject {
-            background: transparent; color: var(--mod-ink-2);
-            border: 1px solid var(--mod-line);
-        }
-        .mz-mod-btn-reject:hover { border-color: var(--mod-red); color: var(--mod-red); }
-        .mz-mod-btn-edit {
-            background: transparent; color: var(--mod-muted);
-            border: 1px solid var(--mod-line); padding: 10px 12px; flex: 0 0 auto;
-        }
-        .mz-mod-btn-edit:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
-        .mz-mod-empty {
-            text-align: center; padding: 80px 32px; background: var(--mod-bg-2);
-            border: 1px dashed var(--mod-line); border-radius: 6px; color: var(--mod-muted);
-        }
-        .mz-mod-empty .ic {
-            width: 64px; height: 64px; margin: 0 auto 16px;
-            border-radius: 50%; background: var(--mod-bg-3);
+        .mz-mod__msg strong { color: var(--mz-ink); }
+        .mz-mod__msg--rejected { border-left-color: var(--mz-red); }
+        .mz-mod__msg .i {
+            width: 24px; height: 24px; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
-            color: var(--mod-gold);
+            color: #fff; font-size: 12px;
+            background: var(--mz-green);
         }
-        .mz-mod-empty h3 { color: #fff; font-weight: 500; font-size: 18px; margin: 0 0 8px; }
-        .mz-mod-empty p { color: var(--mod-muted); margin: 0; }
+        .mz-mod__msg--rejected .i { background: var(--mz-red); }
+
+        /* Cards grid */
+        .mz-mod__grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+            gap: 22px;
+        }
+        .mz-card {
+            background: var(--mz-bg);
+            border: 1px solid var(--mz-line);
+            border-radius: 2px;
+            padding: 0;
+            display: flex; flex-direction: column;
+            transition: box-shadow .2s ease, border-color .2s ease;
+        }
+        .mz-card:hover {
+            border-color: #d6cdb8;
+            box-shadow: 0 6px 22px -14px rgba(31,26,20,0.18);
+        }
+        .mz-card__head {
+            display: flex; align-items: center; gap: 14px;
+            padding: 18px 22px 16px;
+            border-bottom: 1px solid var(--mz-line-2);
+        }
+        .mz-card__avatar {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: var(--mz-bg-3);
+            color: var(--mz-ink);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 15px; letter-spacing: 0.02em;
+            flex-shrink: 0;
+            border: 1px solid var(--mz-line);
+        }
+        .mz-card__who { flex: 1; min-width: 0; }
+        .mz-card__name {
+            color: var(--mz-ink); font-size: 15px; font-weight: 500;
+            line-height: 1.2; word-break: break-word;
+        }
+        .mz-card__role {
+            color: var(--mz-muted); font-size: 12.5px; margin-top: 3px;
+        }
+        .mz-card__when {
+            color: var(--mz-muted); font-size: 11.5px; letter-spacing: 0.04em;
+            font-variant-numeric: tabular-nums; flex-shrink: 0;
+        }
+
+        /* Inline editable fields */
+        .mz-card__body { padding: 18px 22px 6px; }
+        .mz-field { margin-bottom: 14px; }
+        .mz-field__label {
+            display: block;
+            font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+            color: var(--mz-muted); font-weight: 600; margin-bottom: 6px;
+        }
+        .mz-field input[type="text"] {
+            width: 100%;
+            background: var(--mz-bg);
+            border: 1px solid var(--mz-line);
+            border-radius: 2px;
+            padding: 9px 12px;
+            font: inherit; font-size: 14px;
+            color: var(--mz-ink);
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        .mz-field input[type="text"]:focus {
+            outline: 0;
+            border-color: var(--mz-gold);
+            box-shadow: 0 0 0 3px rgba(176,138,62,0.12);
+        }
+        .mz-field--row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 700px) { .mz-field--row { grid-template-columns: 1fr; } }
+
+        /* TinyMCE wrapper polish */
+        .mz-card .wp-editor-wrap { border: 1px solid var(--mz-line); border-radius: 2px; overflow: hidden; }
+        .mz-card .wp-editor-wrap .wp-editor-container { border: 0; }
+        .mz-card .wp-editor-wrap .wp-editor-tabs { display: none; }
+        .mz-card .wp-editor-wrap .quicktags-toolbar,
+        .mz-card .wp-editor-wrap .mce-toolbar-grp { background: var(--mz-bg-3); border-bottom: 1px solid var(--mz-line); }
+        .mz-card .wp-editor-wrap .mce-edit-area iframe { background: var(--mz-bg) !important; }
+        .mz-card .wp-editor-wrap .wp-editor-area { font-size: 14px; line-height: 1.6; padding: 12px 14px; }
+
+        .mz-card__contact {
+            padding: 0 22px 14px;
+            font-size: 12.5px; color: var(--mz-ink-2);
+        }
+        .mz-card__contact a {
+            color: var(--mz-ink-2);
+            border-bottom: 1px solid var(--mz-line);
+        }
+        .mz-card__contact a:hover { color: var(--mz-gold-2); border-bottom-color: var(--mz-gold-2); }
+        .mz-card__contact .ip {
+            color: var(--mz-muted); margin-left: 10px;
+            font-family: SFMono-Regular, Consolas, monospace; font-size: 11.5px;
+        }
+
+        /* Actions */
+        .mz-card__actions {
+            display: flex; gap: 8px;
+            padding: 14px 22px 18px;
+            border-top: 1px solid var(--mz-line-2);
+            margin-top: auto;
+        }
+        .mz-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 10px 16px;
+            border-radius: 2px;
+            font: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+            cursor: pointer; text-decoration: none;
+            border: 1px solid transparent;
+            transition: background .15s ease, color .15s ease, border-color .15s ease;
+            white-space: nowrap;
+        }
+        .mz-btn--approve {
+            flex: 1;
+            background: var(--mz-ink); color: #fff;
+        }
+        .mz-btn--approve:hover { background: #000; color: #fff; }
+        .mz-btn--reject {
+            background: var(--mz-bg); color: var(--mz-ink-2); border-color: var(--mz-line);
+        }
+        .mz-btn--reject:hover { color: var(--mz-red); border-color: var(--mz-red); background: #fff5f5; }
+        .mz-btn--edit {
+            background: var(--mz-bg); color: var(--mz-muted); border-color: var(--mz-line);
+            padding: 10px 12px;
+        }
+        .mz-btn--edit:hover { color: var(--mz-ink); border-color: var(--mz-gold); }
+
+        /* Empty state */
+        .mz-mod__empty {
+            text-align: center;
+            padding: 90px 32px;
+            background: var(--mz-bg);
+            border: 1px solid var(--mz-line);
+            border-radius: 2px;
+        }
+        .mz-mod__empty .ic {
+            width: 64px; height: 64px; margin: 0 auto 18px;
+            border-radius: 50%;
+            background: var(--mz-bg-3);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--mz-gold);
+        }
+        .mz-mod__empty h3 {
+            color: var(--mz-ink); font-weight: 500; font-size: 18px;
+            margin: 0 0 6px;
+        }
+        .mz-mod__empty p { color: var(--mz-muted); margin: 0; font-size: 14px; }
+
         @media (max-width: 782px) {
-            .mz-mod-wrap { margin-left: -10px; padding: 16px; }
-            .mz-mod-grid { grid-template-columns: 1fr; }
-            .mz-mod-hero { padding: 28px 24px; }
+            .mz-mod { margin-left: -10px; padding: 16px 16px 60px; }
+            .mz-mod__grid { grid-template-columns: 1fr; }
+            .mz-mod__stats { width: 100%; }
+            .mz-mod__stat { flex: 1; }
         }
     </style>
-    <div class="mz-mod-wrap">
 
-        <header class="mz-mod-hero">
+    <div class="mz-mod">
+
+        <header class="mz-mod__head">
             <div>
-                <span class="mz-mod-eyebrow"><span class="dot"></span> Moderation queue</span>
-                <h1>Έγκριση αξιολογήσεων</h1>
-                <p>Νέες αξιολογήσεις πελατών που υποβλήθηκαν μέσω της φόρμας στο <code>/reviews/</code>. Ελέγξτε προσεκτικά πριν την έγκριση — μετά τη δημοσίευση είναι ορατές δημόσια.</p>
+                <span class="mz-mod__eyebrow">Συστάσεις · Έγκριση</span>
+                <h1 class="mz-mod__title">Αξιολογήσεις προς δημοσίευση</h1>
+                <p class="mz-mod__lead">
+                    Αξιολογήσεις πελατών που υποβλήθηκαν μέσω της φόρμας στο
+                    <code>/reviews/</code>. Επεξεργαστείτε το κείμενο αν χρειάζεται και
+                    εγκρίνετε. Μετά τη δημοσίευση είναι ορατές δημόσια.
+                </p>
             </div>
-            <div class="mz-mod-counts">
-                <div class="mz-mod-count pending">
-                    <div class="num"><?php echo esc_html( $pending_count ); ?></div>
-                    <div class="lab">Σε αναμονή</div>
+            <div class="mz-mod__stats">
+                <div class="mz-mod__stat mz-mod__stat--pending">
+                    <div class="n"><?php echo esc_html( $pending_count ); ?></div>
+                    <div class="l">Σε αναμονή</div>
                 </div>
-                <div class="mz-mod-count">
-                    <div class="num"><?php echo esc_html( $approved_count ); ?></div>
-                    <div class="lab">Δημοσιευμένες</div>
+                <div class="mz-mod__stat">
+                    <div class="n"><?php echo esc_html( $approved_count ); ?></div>
+                    <div class="l">Δημοσιευμένες</div>
                 </div>
-                <div class="mz-mod-count">
-                    <div class="num"><?php echo esc_html( $trashed_count ); ?></div>
-                    <div class="lab">Στον κάδο</div>
+                <div class="mz-mod__stat">
+                    <div class="n"><?php echo esc_html( $trashed_count ); ?></div>
+                    <div class="l">Στον κάδο</div>
                 </div>
             </div>
         </header>
 
         <?php if ( 'approved' === $done ) : ?>
-            <div class="mz-mod-msg">✓ Η αξιολόγηση εγκρίθηκε και δημοσιεύτηκε.</div>
+            <div class="mz-mod__msg"><span class="i">✓</span> <span><strong>Η αξιολόγηση εγκρίθηκε</strong> και είναι πλέον ορατή στο public site.</span></div>
         <?php elseif ( 'rejected' === $done ) : ?>
-            <div class="mz-mod-msg rejected">✕ Η αξιολόγηση απορρίφθηκε και μεταφέρθηκε στον κάδο.</div>
+            <div class="mz-mod__msg mz-mod__msg--rejected"><span class="i">✕</span> <span><strong>Η αξιολόγηση απορρίφθηκε</strong> και μεταφέρθηκε στον κάδο.</span></div>
         <?php endif; ?>
 
         <?php if ( $pending_q->have_posts() ) : ?>
-            <div class="mz-mod-grid">
+            <div class="mz-mod__grid">
                 <?php while ( $pending_q->have_posts() ) : $pending_q->the_post();
                     $tid    = get_the_ID();
                     $name   = get_the_title();
@@ -644,42 +798,86 @@ function mourtzilaki_render_review_moderation() {
                     $when   = mysql2date( 'd.m.Y · H:i', get_post()->post_date );
                     $initial = mb_strtoupper( mb_substr( $name, 0, 1 ) );
 
-                    $approve_url = wp_nonce_url(
-                        admin_url( 'admin-post.php?action=mourtzilaki_approve_review&id=' . $tid ),
-                        'mz_review_action_' . $tid
-                    );
                     $reject_url = wp_nonce_url(
                         admin_url( 'admin-post.php?action=mourtzilaki_reject_review&id=' . $tid ),
                         'mz_review_action_' . $tid
                     );
-                    $edit_url = get_edit_post_link( $tid, 'raw' );
+                    $edit_url    = get_edit_post_link( $tid, 'raw' );
+                    $editor_id   = 'mzquote_' . $tid;
                 ?>
-                    <article class="mz-mod-card">
-                        <header class="mz-mod-card-h">
-                            <span class="mz-mod-avatar"><?php echo esc_html( $initial ); ?></span>
-                            <div class="mz-mod-meta">
-                                <div class="mz-mod-name"><?php echo esc_html( $name ); ?></div>
-                                <?php if ( $role ) : ?><div class="mz-mod-role"><?php echo esc_html( $role ); ?></div><?php endif; ?>
+                    <article class="mz-card">
+                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                            <input type="hidden" name="action" value="mourtzilaki_approve_review">
+                            <input type="hidden" name="id" value="<?php echo esc_attr( $tid ); ?>">
+                            <?php wp_nonce_field( 'mz_review_action_' . $tid ); ?>
+
+                            <header class="mz-card__head">
+                                <span class="mz-card__avatar"><?php echo esc_html( $initial ); ?></span>
+                                <div class="mz-card__who">
+                                    <div class="mz-card__name"><?php echo esc_html( $name ); ?></div>
+                                    <?php if ( $role ) : ?><div class="mz-card__role"><?php echo esc_html( $role ); ?></div><?php endif; ?>
+                                </div>
+                                <span class="mz-card__when"><?php echo esc_html( $when ); ?></span>
+                            </header>
+
+                            <div class="mz-card__body">
+                                <div class="mz-field mz-field--row">
+                                    <div>
+                                        <label class="mz-field__label" for="mz_name_<?php echo esc_attr( $tid ); ?>">Όνομα</label>
+                                        <input type="text" id="mz_name_<?php echo esc_attr( $tid ); ?>" name="mz_name" value="<?php echo esc_attr( $name ); ?>">
+                                    </div>
+                                    <div>
+                                        <label class="mz-field__label" for="mz_role_<?php echo esc_attr( $tid ); ?>">Ιδιότητα</label>
+                                        <input type="text" id="mz_role_<?php echo esc_attr( $tid ); ?>" name="mz_role" value="<?php echo esc_attr( $role ); ?>">
+                                    </div>
+                                </div>
+
+                                <div class="mz-field">
+                                    <label class="mz-field__label" for="<?php echo esc_attr( $editor_id ); ?>">Κείμενο αξιολόγησης</label>
+                                    <?php wp_editor( $quote, $editor_id, array(
+                                        'textarea_name' => 'mz_quote',
+                                        'textarea_rows' => 5,
+                                        'media_buttons' => false,
+                                        'tinymce'       => array(
+                                            'toolbar1'         => 'bold,italic,underline,bullist,numlist,link,unlink,removeformat',
+                                            'toolbar2'         => '',
+                                            'menubar'          => false,
+                                            'statusbar'        => false,
+                                            'resize'           => false,
+                                            'wp_autoresize_on' => true,
+                                        ),
+                                        'quicktags'     => false,
+                                    ) ); ?>
+                                </div>
                             </div>
-                            <span class="mz-mod-time"><?php echo esc_html( $when ); ?></span>
-                        </header>
-                        <blockquote class="mz-mod-quote"><?php echo esc_html( $quote ); ?></blockquote>
-                        <?php if ( $email ) : ?>
-                            <div class="mz-mod-email">
-                                <span style="opacity:0.5">✉</span>
-                                <a href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $email ); ?></a>
-                            </div>
-                        <?php endif; ?>
-                        <footer class="mz-mod-actions">
-                            <a class="mz-mod-btn mz-mod-btn-approve" href="<?php echo esc_url( $approve_url ); ?>" onclick="return confirm('Έγκριση και άμεση δημοσίευση;');">✓ Έγκριση</a>
-                            <a class="mz-mod-btn mz-mod-btn-reject" href="<?php echo esc_url( $reject_url ); ?>" onclick="return confirm('Απόρριψη και μεταφορά στον κάδο;');">✕ Απόρριψη</a>
-                            <a class="mz-mod-btn mz-mod-btn-edit" href="<?php echo esc_url( $edit_url ); ?>" title="Επεξεργασία">✎</a>
-                        </footer>
+
+                            <?php if ( $email || $ip ) : ?>
+                                <div class="mz-card__contact">
+                                    <?php if ( $email ) : ?>
+                                        <span aria-hidden="true">✉</span>
+                                        <a href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $email ); ?></a>
+                                    <?php endif; ?>
+                                    <?php if ( $ip ) : ?>
+                                        <span class="ip"><?php echo esc_html( $ip ); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <footer class="mz-card__actions">
+                                <button class="mz-btn mz-btn--approve" type="submit"
+                                        onclick="return confirm('Αποθήκευση αλλαγών και άμεση δημοσίευση;');">
+                                    ✓ Αποθήκευση &amp; έγκριση
+                                </button>
+                                <a class="mz-btn mz-btn--reject" href="<?php echo esc_url( $reject_url ); ?>"
+                                   onclick="return confirm('Απόρριψη και μεταφορά στον κάδο;');">✕ Απόρριψη</a>
+                                <a class="mz-btn mz-btn--edit" href="<?php echo esc_url( $edit_url ); ?>" title="Πλήρης επεξεργασία">✎</a>
+                            </footer>
+                        </form>
                     </article>
                 <?php endwhile; wp_reset_postdata(); ?>
             </div>
         <?php else : ?>
-            <div class="mz-mod-empty">
+            <div class="mz-mod__empty">
                 <div class="ic">
                     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
                 </div>
@@ -713,17 +911,21 @@ function mourtzilaki_handle_review_submission() {
         exit;
     }
 
-    $name  = isset( $_POST['reviewer_name'] )  ? sanitize_text_field( wp_unslash( $_POST['reviewer_name'] ) )     : '';
-    $role  = isset( $_POST['reviewer_role'] )  ? sanitize_text_field( wp_unslash( $_POST['reviewer_role'] ) )     : '';
-    $email = isset( $_POST['reviewer_email'] ) ? sanitize_email( wp_unslash( $_POST['reviewer_email'] ) )          : '';
-    $quote = isset( $_POST['reviewer_quote'] ) ? sanitize_textarea_field( wp_unslash( $_POST['reviewer_quote'] ) ) : '';
-    $gdpr  = isset( $_POST['gdpr'] );
+    $name      = isset( $_POST['reviewer_name'] )  ? sanitize_text_field( wp_unslash( $_POST['reviewer_name'] ) )     : '';
+    $role      = isset( $_POST['reviewer_role'] )  ? sanitize_text_field( wp_unslash( $_POST['reviewer_role'] ) )     : '';
+    $email     = isset( $_POST['reviewer_email'] ) ? sanitize_email( wp_unslash( $_POST['reviewer_email'] ) )          : '';
+    $quote_raw = isset( $_POST['reviewer_quote'] ) ? wp_unslash( $_POST['reviewer_quote'] )                            : '';
+    $quote     = mourtzilaki_kses_quote( $quote_raw );
+    $gdpr      = isset( $_POST['gdpr'] );
 
-    if ( '' === $name || '' === $quote || ! $gdpr ) {
+    $quote_plain = trim( wp_strip_all_tags( $quote ) );
+    if ( '' === $name || '' === $quote_plain || ! $gdpr ) {
         wp_safe_redirect( add_query_arg( 'review_error', 'missing', $back ) );
         exit;
     }
-    if ( mb_strlen( $quote ) > 1500 ) { $quote = mb_substr( $quote, 0, 1500 ); }
+    if ( mb_strlen( $quote_plain ) > 1500 ) {
+        $quote = mourtzilaki_kses_quote( mb_substr( $quote_raw, 0, 3000 ) );
+    }
 
     $id = wp_insert_post( array(
         'post_type'   => 'mz_testimonial',
@@ -744,10 +946,11 @@ function mourtzilaki_handle_review_submission() {
 
     // Notify admin.
     $edit_url = admin_url( 'post.php?post=' . $id . '&action=edit' );
+    $quote_for_email = trim( wp_strip_all_tags( $quote ) );
     wp_mail(
         get_option( 'admin_email' ),
         'Νέα αξιολόγηση προς έγκριση',
-        "Νέα αξιολόγηση από: {$name}\nEmail: {$email}\nΙδιότητα: {$role}\n\nΚείμενο:\n{$quote}\n\nΈγκριση: {$edit_url}",
+        "Νέα αξιολόγηση από: {$name}\nEmail: {$email}\nΙδιότητα: {$role}\n\nΚείμενο:\n{$quote_for_email}\n\nΈγκριση: {$edit_url}",
         array( 'Reply-To: ' . ( $email ?: get_option( 'admin_email' ) ) )
     );
 
@@ -888,7 +1091,7 @@ add_action( 'acf/init', function () {
         'fields' => array(
             array( 'key' => 'field_mz_hero_eyebrow',  'label' => 'Eyebrow',          'name' => 'eyebrow',  'type' => 'text' ),
             array( 'key' => 'field_mz_hero_headline', 'label' => 'Επικεφαλίδα',      'name' => 'headline', 'type' => 'textarea', 'rows' => 2, 'required' => 1 ),
-            array( 'key' => 'field_mz_hero_lead',     'label' => 'Υπότιτλος',        'name' => 'lead',     'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_hero_lead',     'label' => 'Υπότιτλος',        'name' => 'lead',     'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
             array( 'key' => 'field_mz_hero_image',    'label' => 'Εικόνα φόντου',    'name' => 'image',    'type' => 'image', 'return_format' => 'array', 'preview_size' => 'medium' ),
             array( 'key' => 'field_mz_hero_cta_l',    'label' => 'Κείμενο κουμπιού', 'name' => 'cta_label', 'type' => 'text' ),
             array( 'key' => 'field_mz_hero_cta_u',    'label' => 'URL κουμπιού',     'name' => 'cta_url',   'type' => 'url' ),
@@ -902,7 +1105,7 @@ add_action( 'acf/init', function () {
         'key'    => 'group_mz_service',
         'title'  => 'Στοιχεία τομέα',
         'fields' => array(
-            array( 'key' => 'field_mz_svc_desc', 'label' => 'Σύντομη περιγραφή', 'name' => 'description', 'type' => 'textarea', 'rows' => 4, 'required' => 1 ),
+            array( 'key' => 'field_mz_svc_desc', 'label' => 'Σύντομη περιγραφή', 'name' => 'description', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual', 'required' => 1 ),
             array( 'key' => 'field_mz_svc_long', 'label' => 'Εκτενής περιγραφή', 'name' => 'long_description', 'type' => 'wysiwyg', 'media_upload' => 0 ),
         ),
         'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'mz_service' ) ) ),
@@ -914,7 +1117,7 @@ add_action( 'acf/init', function () {
         'title'  => 'Στοιχεία δικηγόρου',
         'fields' => array(
             array( 'key' => 'field_mz_mem_role',  'label' => 'Θέση / ρόλος',        'name' => 'role',      'type' => 'text', 'required' => 1 ),
-            array( 'key' => 'field_mz_mem_short', 'label' => 'Σύντομο βιογραφικό',  'name' => 'short_bio', 'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_mem_short', 'label' => 'Σύντομο βιογραφικό',  'name' => 'short_bio', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
             array( 'key' => 'field_mz_mem_photo', 'label' => 'Φωτογραφία',          'name' => 'photo',     'type' => 'image', 'return_format' => 'array', 'preview_size' => 'medium' ),
             array( 'key' => 'field_mz_mem_email', 'label' => 'Email',               'name' => 'email',     'type' => 'email' ),
             array( 'key' => 'field_mz_mem_phone', 'label' => 'Τηλέφωνο',            'name' => 'phone',     'type' => 'text' ),
@@ -929,7 +1132,7 @@ add_action( 'acf/init', function () {
         'fields' => array(
             array( 'key' => 'field_mz_p_eb',   'label' => 'Eyebrow', 'name' => 'page_eyebrow',   'type' => 'text' ),
             array( 'key' => 'field_mz_p_ttl',  'label' => 'Τίτλος (override)', 'name' => 'page_hero_title', 'type' => 'textarea', 'rows' => 2, 'instructions' => 'Αν αφεθεί κενό, χρησιμοποιείται ο τίτλος της σελίδας.' ),
-            array( 'key' => 'field_mz_p_lead', 'label' => 'Lead', 'name' => 'page_hero_lead', 'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_p_lead', 'label' => 'Lead', 'name' => 'page_hero_lead', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
         ),
         'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'page' ) ) ),
         'position' => 'normal',
@@ -966,7 +1169,7 @@ add_action( 'acf/init', function () {
             array( 'key' => 'field_mz_c_year',     'label' => 'Έτος ολοκλήρωσης', 'name' => 'year',     'type' => 'text', 'instructions' => 'Π.χ. 2024' ),
             array( 'key' => 'field_mz_c_duration', 'label' => 'Διάρκεια',         'name' => 'duration', 'type' => 'text', 'instructions' => 'Π.χ. «8 μήνες», «1 έτος»' ),
             array( 'key' => 'field_mz_c_outcome',  'label' => 'Αποτέλεσμα',       'name' => 'outcome',  'type' => 'text', 'required' => 1, 'instructions' => 'Σύντομη φράση που συνοψίζει το επίτευγμα. Π.χ. «Κούρεμα οφειλής 35%».' ),
-            array( 'key' => 'field_mz_c_desc',     'label' => 'Περιγραφή',        'name' => 'description', 'type' => 'textarea', 'rows' => 4, 'required' => 1, 'instructions' => 'Σύντομη περιγραφή 2-3 προτάσεων χωρίς αναφορά σε ονόματα.' ),
+            array( 'key' => 'field_mz_c_desc',     'label' => 'Περιγραφή',        'name' => 'description', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual', 'required' => 1, 'instructions' => 'Σύντομη περιγραφή 2-3 προτάσεων χωρίς αναφορά σε ονόματα.' ),
         ),
         'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'mz_case' ) ) ),
     ) );
@@ -1002,7 +1205,7 @@ add_action( 'acf/init', function () {
             array( 'key' => 'field_mz_post_takeaways', 'label' => 'Κύρια συμπεράσματα (key takeaways)',
                    'name' => 'key_takeaways', 'type' => 'textarea', 'rows' => 5,
                    'instructions' => 'Μία σύντομη πρόταση ανά γραμμή. Εμφανίζονται σε ξεχωριστό κουτί στην αρχή του άρθρου.' ),
-            array( 'key' => 'field_mz_post_pq', 'label' => 'Pull-quote', 'name' => 'pull_quote', 'type' => 'textarea', 'rows' => 3,
+            array( 'key' => 'field_mz_post_pq', 'label' => 'Pull-quote', 'name' => 'pull_quote', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual',
                    'instructions' => 'Φράση κλειδί που θα εμφανιστεί διακριτικά μέσα στο άρθρο. Ιδανικά 1-2 προτάσεις.' ),
 
             array( 'key' => 'field_mz_post_tab3', 'label' => 'Σύνδεση', 'type' => 'tab' ),
@@ -1014,11 +1217,11 @@ add_action( 'acf/init', function () {
             array( 'key' => 'field_mz_post_tab4', 'label' => 'Call to action', 'type' => 'tab' ),
             array( 'key' => 'field_mz_post_cta_t', 'label' => 'Τίτλος CTA',     'name' => 'cta_title', 'type' => 'text',
                    'instructions' => 'Προαιρετικά. Αν αφεθεί κενό, χρησιμοποιείται ο γενικός τίτλος.' ),
-            array( 'key' => 'field_mz_post_cta_x', 'label' => 'Κείμενο CTA',    'name' => 'cta_text',  'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_post_cta_x', 'label' => 'Κείμενο CTA',    'name' => 'cta_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
 
             array( 'key' => 'field_mz_post_tab5', 'label' => 'Νομικά', 'type' => 'tab' ),
             array( 'key' => 'field_mz_post_disc', 'label' => 'Νομική σημείωση (disclaimer)',
-                   'name' => 'disclaimer', 'type' => 'textarea', 'rows' => 3,
+                   'name' => 'disclaimer', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual',
                    'instructions' => 'Προαιρετικά. Εμφανίζεται με μικρή γραμματοσειρά στο τέλος του άρθρου.' ),
         ),
         'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'post' ) ) ),
@@ -1030,7 +1233,7 @@ add_action( 'acf/init', function () {
         'key'    => 'group_mz_testimonial',
         'title'  => 'Testimonial',
         'fields' => array(
-            array( 'key' => 'field_mz_t_quote', 'label' => 'Παράθεμα', 'name' => 'quote', 'type' => 'textarea', 'rows' => 5, 'required' => 1 ),
+            array( 'key' => 'field_mz_t_quote', 'label' => 'Παράθεμα', 'name' => 'quote', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual', 'required' => 1 ),
             array( 'key' => 'field_mz_t_role',  'label' => 'Ιδιότητα', 'name' => 'role',  'type' => 'text', 'instructions' => 'π.χ. Διευθύνων Σύμβουλος, εμπορική εταιρεία' ),
         ),
         'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'mz_testimonial' ) ) ),
@@ -1044,9 +1247,9 @@ add_action( 'acf/init', function () {
             'title'  => 'Περιεχόμενο σελίδας',
             'fields' => array(
                 array( 'key' => 'field_mz_a_story_title',   'label' => 'Τίτλος ενότητας «Ιστορία»', 'name' => 'about_story_title',   'type' => 'text' ),
-                array( 'key' => 'field_mz_a_story_text',    'label' => 'Κείμενο ιστορίας',          'name' => 'about_story_text',    'type' => 'textarea', 'rows' => 5 ),
+                array( 'key' => 'field_mz_a_story_text',    'label' => 'Κείμενο ιστορίας',          'name' => 'about_story_text',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
                 array( 'key' => 'field_mz_a_mission_title', 'label' => 'Τίτλος ενότητας «Αποστολή»','name' => 'about_mission_title', 'type' => 'text' ),
-                array( 'key' => 'field_mz_a_mission_text',  'label' => 'Κείμενο αποστολής',         'name' => 'about_mission_text',  'type' => 'textarea', 'rows' => 5 ),
+                array( 'key' => 'field_mz_a_mission_text',  'label' => 'Κείμενο αποστολής',         'name' => 'about_mission_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
                 array( 'key' => 'field_mz_a_values',        'label' => 'Αξίες (μία ανά γραμμή)',
                        'name' => 'about_values',
                        'type' => 'textarea',
@@ -1073,19 +1276,19 @@ add_action( 'acf/init', function () {
             array( 'key' => 'field_mz_f_tab_about',  'label' => 'Φιλοσοφία',     'type' => 'tab' ),
             array( 'key' => 'field_mz_f_about_eb',   'label' => 'Eyebrow',           'name' => 'home_about_eyebrow', 'type' => 'text' ),
             array( 'key' => 'field_mz_f_about_title','label' => 'Τίτλος',            'name' => 'home_about_title',   'type' => 'textarea', 'rows' => 2 ),
-            array( 'key' => 'field_mz_f_about_quote','label' => 'Pull-quote',        'name' => 'home_philosophy_quote', 'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_f_about_quote','label' => 'Pull-quote',        'name' => 'home_philosophy_quote', 'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
             array( 'key' => 'field_mz_f_about_year', 'label' => 'Caption έτους',     'name' => 'home_philosophy_year',  'type' => 'text', 'instructions' => 'π.χ. Est. 2005' ),
-            array( 'key' => 'field_mz_f_about_text', 'label' => 'Κείμενο',           'name' => 'home_about_text',    'type' => 'textarea', 'rows' => 6 ),
+            array( 'key' => 'field_mz_f_about_text', 'label' => 'Κείμενο',           'name' => 'home_about_text',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
 
             array( 'key' => 'field_mz_f_tab_svc',    'label' => 'Τομείς',         'type' => 'tab' ),
             array( 'key' => 'field_mz_f_svc_eb',     'label' => 'Eyebrow',           'name' => 'home_svc_eyebrow',   'type' => 'text' ),
             array( 'key' => 'field_mz_f_svc_title',  'label' => 'Τίτλος',            'name' => 'home_svc_title',     'type' => 'textarea', 'rows' => 2 ),
-            array( 'key' => 'field_mz_f_svc_lead',   'label' => 'Υπότιτλος',         'name' => 'home_svc_lead',      'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_f_svc_lead',   'label' => 'Υπότιτλος',         'name' => 'home_svc_lead',      'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
 
             array( 'key' => 'field_mz_f_tab_proc',   'label' => 'Διαδικασία',     'type' => 'tab' ),
             array( 'key' => 'field_mz_f_proc_eb',    'label' => 'Eyebrow',           'name' => 'home_process_eyebrow', 'type' => 'text' ),
             array( 'key' => 'field_mz_f_proc_title', 'label' => 'Τίτλος',            'name' => 'home_process_title',   'type' => 'textarea', 'rows' => 2 ),
-            array( 'key' => 'field_mz_f_proc_lead',  'label' => 'Υπότιτλος',         'name' => 'home_process_lead',    'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_f_proc_lead',  'label' => 'Υπότιτλος',         'name' => 'home_process_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
             array( 'key' => 'field_mz_f_proc_steps', 'label' => 'Βήματα (μία ανά γραμμή)',
                    'name' => 'home_process_steps',
                    'type' => 'textarea',
@@ -1094,7 +1297,7 @@ add_action( 'acf/init', function () {
 
             array( 'key' => 'field_mz_f_tab_law',    'label' => 'Δικηγόρος',      'type' => 'tab' ),
             array( 'key' => 'field_mz_f_law_eb',     'label' => 'Eyebrow',           'name' => 'home_lawyer_eyebrow', 'type' => 'text' ),
-            array( 'key' => 'field_mz_f_law_lead',   'label' => 'Lead κείμενο',      'name' => 'home_lawyer_lead',    'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_f_law_lead',   'label' => 'Lead κείμενο',      'name' => 'home_lawyer_lead',    'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
             array( 'key' => 'field_mz_f_law_meta',   'label' => 'Meta στοιχεία (μία ανά γραμμή)',
                    'name' => 'home_lawyer_meta',
                    'type' => 'textarea',
@@ -1108,10 +1311,10 @@ add_action( 'acf/init', function () {
             array( 'key' => 'field_mz_f_tab_cta',    'label' => 'CTA',            'type' => 'tab' ),
             array( 'key' => 'field_mz_f_cta_eb',     'label' => 'Eyebrow',           'name' => 'home_cta_eyebrow',   'type' => 'text' ),
             array( 'key' => 'field_mz_f_cta_title',  'label' => 'Τίτλος',            'name' => 'home_cta_title',     'type' => 'textarea', 'rows' => 2 ),
-            array( 'key' => 'field_mz_f_cta_text',   'label' => 'Κείμενο',           'name' => 'home_cta_text',      'type' => 'textarea', 'rows' => 3 ),
+            array( 'key' => 'field_mz_f_cta_text',   'label' => 'Κείμενο',           'name' => 'home_cta_text',      'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
 
             array( 'key' => 'field_mz_f_tab_foot',   'label' => 'Footer',         'type' => 'tab' ),
-            array( 'key' => 'field_mz_f_foot_about', 'label' => 'Footer about text', 'name' => 'footer_about_text',  'type' => 'textarea', 'rows' => 4 ),
+            array( 'key' => 'field_mz_f_foot_about', 'label' => 'Footer about text', 'name' => 'footer_about_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
             array( 'key' => 'field_mz_f_foot_legal', 'label' => 'Footer legal (δεξιά)', 'name' => 'footer_legal_right', 'type' => 'text' ),
         ),
         'location' => array( array( array( 'param' => 'page_type', 'operator' => '==', 'value' => 'front_page' ) ) ),
@@ -1194,6 +1397,62 @@ function mourtzilaki_get_contact_info() {
         $cache = $defaults;
     }
     return $cache;
+}
+
+/**
+ * BLOCK-context safe HTML for editor fields (testimonial quotes, prose blocks).
+ * Wraps plain-text in paragraphs; preserves WYSIWYG HTML. Allows block + inline tags.
+ */
+function mourtzilaki_kses_quote( $text ) {
+    $text = (string) $text;
+    if ( '' === trim( $text ) ) { return ''; }
+    if ( false === strpos( $text, '<p' ) && false === strpos( $text, '<br' ) ) {
+        $text = wpautop( $text );
+    }
+    return wp_kses( $text, array(
+        'p'          => array(),
+        'br'         => array(),
+        'strong'     => array(),
+        'em'         => array(),
+        'b'          => array(),
+        'i'          => array(),
+        'u'          => array(),
+        'a'          => array( 'href' => true, 'title' => true, 'rel' => true, 'target' => true ),
+        'ul'         => array(),
+        'ol'         => array(),
+        'li'         => array(),
+        'blockquote' => array(),
+        'h2'         => array(),
+        'h3'         => array(),
+        'h4'         => array(),
+    ) );
+}
+
+/**
+ * INLINE-context safe HTML for editor fields used inside an existing block
+ * tag (e.g. `<p class="lead">{value}</p>`). Strips outer paragraph wrappers
+ * and converts paragraph breaks to <br><br>. Inline tags only.
+ */
+function mourtzilaki_field_inline( $text ) {
+    $text = (string) $text;
+    if ( '' === trim( $text ) ) { return ''; }
+    // Plain text → escape + preserve newlines as <br>.
+    if ( false === strpos( $text, '<' ) ) {
+        return nl2br( esc_html( $text ) );
+    }
+    // HTML from WYSIWYG: paragraph break → double <br>; strip wrapping <p>.
+    $text = preg_replace( '#</p>\s*<p[^>]*>#i', '<br><br>', $text );
+    $text = preg_replace( '#^\s*<p[^>]*>#i', '', $text );
+    $text = preg_replace( '#</p>\s*$#i', '', $text );
+    return wp_kses( $text, array(
+        'br'     => array(),
+        'strong' => array(),
+        'em'     => array(),
+        'b'      => array(),
+        'i'      => array(),
+        'u'      => array(),
+        'a'      => array( 'href' => true, 'title' => true, 'rel' => true, 'target' => true ),
+    ) );
 }
 
 /**

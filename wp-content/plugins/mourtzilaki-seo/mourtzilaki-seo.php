@@ -199,7 +199,8 @@ class Mourtzilaki_SEO {
         $keys  = (string) $values['keys'];
         $img   = (int) $values['img_id'];
 
-        $word_count = str_word_count( wp_strip_all_tags( $post->post_content ) );
+        $stripped   = trim( wp_strip_all_tags( $post->post_content ) );
+        $word_count = ( '' === $stripped ) ? 0 : count( preg_split( '/\s+/u', $stripped ) );
         $first_kw   = '';
         if ( $keys ) {
             $parts = array_filter( array_map( 'trim', explode( ',', $keys ) ) );
@@ -207,8 +208,8 @@ class Mourtzilaki_SEO {
         }
         $title_l   = mb_strtolower( $title );
         $desc_l    = mb_strtolower( $desc );
-        $content_l = mb_strtolower( wp_strip_all_tags( $post->post_content ) );
-        $first_para = mb_strtolower( wp_strip_all_tags( substr( $post->post_content, 0, 600 ) ) );
+        $content_l = mb_strtolower( $stripped );
+        $first_para = mb_strtolower( wp_strip_all_tags( mb_substr( $post->post_content, 0, 600 ) ) );
 
         $title_len = mb_strlen( $title );
         $desc_len  = mb_strlen( $desc );

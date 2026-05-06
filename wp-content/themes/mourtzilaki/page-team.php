@@ -13,7 +13,7 @@ $h    = mourtzilaki_page_hero();
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Δικηγόροι' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Η ομάδα του γραφείου.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Το γραφείο λειτουργεί ως μικρή, εξειδικευμένη μονάδα που εστιάζει στη βαθιά γνώση και στην προσωπική σχέση με τον πελάτη. Κάθε υπόθεση χειρίζεται προσωπικά από τη δικηγόρο, χωρίς να μετατίθεται σε τρίτους.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Το γραφείο λειτουργεί ως μικρή, εξειδικευμένη μονάδα που εστιάζει στη βαθιά γνώση και στην προσωπική σχέση με τον πελάτη. Κάθε υπόθεση χειρίζεται προσωπικά από τη δικηγόρο, χωρίς να μετατίθεται σε τρίτους.' ); ?></p>
     </div>
 </section>
 
@@ -26,7 +26,7 @@ $h    = mourtzilaki_page_hero();
             <div class="featured-info">
                 <span class="eyebrow"><?php echo esc_html( $lead['role'] ); ?></span>
                 <h2 class="h-1 mt-2"><?php echo esc_html( $lead['name'] ); ?></h2>
-                <p class="lead mt-4"><?php echo esc_html( $lead['bio'] ); ?></p>
+                <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $lead['bio'] ); ?></p>
                 <p class="mt-2">Παρέχει νομικές υπηρεσίες σε ιδιώτες και επιχειρήσεις, με έμφαση στη σαφή επικοινωνία, τον σεβασμό των προθεσμιών και την υψηλή ποιότητα νομικής τεκμηρίωσης.</p>
                 <div class="featured-meta mt-4">
                     <div><span class="lab">Δικηγορικός Σύλλογος</span><span class="val">Αθηνών</span></div>

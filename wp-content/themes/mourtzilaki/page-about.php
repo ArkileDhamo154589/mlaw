@@ -22,7 +22,7 @@ $member = mourtzilaki_get_member( 0 );
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Φιλοσοφία' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Δίκαιο που σέβεται τον άνθρωπο και την επιχείρηση.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Από το 2005, χτίζουμε ένα γραφείο που συνδυάζει τη νομική ακρίβεια με την προσωπική σχέση εμπιστοσύνης.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Από το 2005, χτίζουμε ένα γραφείο που συνδυάζει τη νομική ακρίβεια με την προσωπική σχέση εμπιστοσύνης.' ); ?></p>
     </div>
 </section>
 
@@ -60,7 +60,7 @@ $member = mourtzilaki_get_member( 0 );
             <div class="story-text reveal reveal-right">
                 <span class="eyebrow"><?php echo esc_html( $g( 'about_story_title', 'Η ιστορία μας' ) ); ?></span>
                 <h2 class="h-2 mt-2">Από μια ιδέα, ένα γραφείο.</h2>
-                <p class="lead mt-4"><?php echo esc_html( $g( 'about_story_text' ) ); ?></p>
+                <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $g( 'about_story_text' ) ); ?></p>
                 <p class="mt-4">Η εμπειρία μας στα δικαστήρια, οι σύνθετες υποθέσεις που χειριστήκαμε και — πάνω απ’ όλα — οι σχέσεις εμπιστοσύνης που χτίσαμε με κάθε πελάτη συνθέτουν το γραφείο που είμαστε σήμερα. Δεν είμαστε εδώ απλώς για να γράφουμε δικόγραφα.</p>
 
                 <div class="story-mini-stats">
@@ -164,7 +164,7 @@ $member = mourtzilaki_get_member( 0 );
             <div class="mission-text reveal reveal-right">
                 <span class="eyebrow"><?php echo esc_html( $g( 'about_mission_title', 'Η αποστολή μας' ) ); ?></span>
                 <h2 class="h-2 mt-2">Καθαρές αποφάσεις, χωρίς ορολογίες.</h2>
-                <p class="lead mt-4"><?php echo esc_html( $g( 'about_mission_text' ) ); ?></p>
+                <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $g( 'about_mission_text' ) ); ?></p>
 
                 <blockquote class="founder-quote">
                     «Ο πελάτης πρέπει να φεύγει από το γραφείο μας ξέροντας ακριβώς πού στέκεται και τι θα κάνουμε τις επόμενες εβδομάδες. Όχι αόριστες υποσχέσεις.»

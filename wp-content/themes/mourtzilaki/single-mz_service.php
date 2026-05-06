@@ -75,7 +75,7 @@ while ( have_posts() ) : the_post();
                 <span class="eyebrow">Τομέας δικαίου</span>
                 <h1 class="h-1 mt-2"><?php echo esc_html( $title ); ?></h1>
                 <?php if ( $short ) : ?>
-                    <p class="lead mt-4"><?php echo esc_html( $short ); ?></p>
+                    <p class="lead mt-4"><?php echo mourtzilaki_field_inline( $short ); ?></p>
                 <?php endif; ?>
                 <div class="svc-hero-cta mt-4">
                     <a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">Συμβουλευτική συνάντηση <span class="arrow">→</span></a>
@@ -152,7 +152,7 @@ while ( have_posts() ) : the_post();
                 <?php if ( ! empty( $testimonials ) ) : $t = $testimonials[0]; ?>
                 <div class="svc-aside-card svc-aside-quote reveal reveal-right">
                     <span class="quote-mark" aria-hidden="true">“</span>
-                    <blockquote><?php echo esc_html( $t['quote'] ); ?></blockquote>
+                    <blockquote><?php echo mourtzilaki_kses_quote( $t['quote'] ); ?></blockquote>
                     <footer>
                         <span class="t-name"><?php echo esc_html( $t['name'] ); ?></span>
                         <?php if ( ! empty( $t['role'] ) ) : ?>
@@ -239,7 +239,7 @@ while ( have_posts() ) : the_post();
                 <a class="svc-tile reveal reveal-up" href="<?php echo esc_url( get_permalink( $r ) ); ?>">
                     <span class="svc-tile-icon" aria-hidden="true"><?php echo mourtzilaki_service_icon( get_the_title( $r ) ); ?></span>
                     <h3 class="svc-tile-title"><?php echo esc_html( get_the_title( $r ) ); ?></h3>
-                    <p class="svc-tile-desc"><?php echo esc_html( wp_trim_words( $r_short, 16, '…' ) ); ?></p>
+                    <p class="svc-tile-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $r_short ), 16, '…' ) ); ?></p>
                     <span class="svc-tile-more">Μάθετε περισσότερα <span class="arrow">→</span></span>
                 </a>
             <?php endforeach; ?>

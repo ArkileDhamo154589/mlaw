@@ -25,7 +25,7 @@ foreach ( $cases as $cs ) {
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Επιλεγμένες υποθέσεις' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Παραδείγματα από τη δουλειά μας.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Επιλεγμένες υποθέσεις που χειριστήκαμε τα τελευταία χρόνια — ανωνυμοποιημένες, ώστε να αναδειχθεί η νομική πρόκληση και το αποτέλεσμα, όχι τα πρόσωπα.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Επιλεγμένες υποθέσεις που χειριστήκαμε τα τελευταία χρόνια — ανωνυμοποιημένες, ώστε να αναδειχθεί η νομική πρόκληση και το αποτέλεσμα, όχι τα πρόσωπα.' ); ?></p>
     </div>
 </section>
 
@@ -59,7 +59,7 @@ foreach ( $cases as $cs ) {
                             </span>
                         </header>
                         <h3 class="case-title"><?php echo esc_html( get_the_title( $cs ) ); ?></h3>
-                        <p class="case-desc"><?php echo esc_html( $desc ); ?></p>
+                        <p class="case-desc"><?php echo mourtzilaki_field_inline( $desc ); ?></p>
                         <div class="case-outcome">
                             <span class="co-lab">Αποτέλεσμα</span>
                             <span class="co-val"><?php echo esc_html( $outcome ); ?></span>

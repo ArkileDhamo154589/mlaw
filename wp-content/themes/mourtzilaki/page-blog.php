@@ -31,7 +31,7 @@ $categories = get_categories( array( 'hide_empty' => true ) );
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Άρθρα' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Νομικές αναλύσεις & ενημερώσεις.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Παρακολουθούμε τις εξελίξεις σε νομοθεσία και νομολογία και μοιραζόμαστε αναλύσεις σε κατανοητή γλώσσα, χωρίς περιττή ορολογία.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Παρακολουθούμε τις εξελίξεις σε νομοθεσία και νομολογία και μοιραζόμαστε αναλύσεις σε κατανοητή γλώσσα, χωρίς περιττή ορολογία.' ); ?></p>
     </div>
 </section>
 

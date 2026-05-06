@@ -3461,6 +3461,80 @@ body.menu-open .mobile-menu {
 .rsw-field input:focus,
 .rsw-field textarea:focus { outline: none; border-bottom-color: var(--ink); }
 .rsw-field textarea { min-height: 140px; resize: vertical; }
+
+/* Rich-text editor (review form) ------------------------------------ */
+.rsw-rte {
+    border-bottom: 1px solid var(--line);
+    transition: border-color .2s var(--ease);
+}
+.rsw-rte:focus-within { border-bottom-color: var(--ink); }
+.rsw-rte-bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed var(--line-2);
+}
+.rsw-rte-bar button {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    width: 30px;
+    height: 30px;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font);
+    transition: background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+}
+.rsw-rte-bar button:hover {
+    background: var(--bg-2);
+    border-color: var(--line);
+    color: var(--ink);
+}
+.rsw-rte-bar button[data-cmd="bold"] b,
+.rsw-rte-bar button[data-cmd="italic"] i,
+.rsw-rte-bar button[data-cmd="underline"] u { font-style: inherit; font-weight: 600; }
+.rsw-rte-bar button[data-cmd="italic"] i { font-style: italic; font-weight: 500; }
+.rsw-rte-bar button[data-cmd="underline"] u { text-decoration: underline; font-weight: 500; }
+.rsw-rte-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--line);
+    margin: 0 4px;
+}
+.rsw-rte-area {
+    min-height: 140px;
+    padding: 12px 0;
+    font: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    line-height: 1.65;
+}
+.rsw-rte-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--muted);
+    pointer-events: none;
+}
+.rsw-rte-area p { margin: 0 0 0.6em; }
+.rsw-rte-area p:last-child { margin-bottom: 0; }
+.rsw-rte-area ul,
+.rsw-rte-area ol { margin: 0 0 0.6em; padding-left: 22px; list-style: revert; }
+.rsw-rte-area li { margin: 0 0 4px; }
+.rsw-rte-area a { color: var(--ink); border-bottom: 1px solid var(--gold); }
+.rsw-rte-hidden {
+    position: absolute;
+    left: -9999px; top: -9999px;
+    width: 1px; height: 1px;
+    opacity: 0;
+}
+
 .rsw-counter {
     position: absolute;
     right: 0; bottom: 8px;

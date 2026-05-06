@@ -30,7 +30,7 @@ $total_c = count( $cat_counts );
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Συχνές ερωτήσεις' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Απαντήσεις σε όσα μας ρωτούν συχνότερα.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Συγκεντρώσαμε τις πιο συχνές ερωτήσεις που λαμβάνουμε από πελάτες. Αν δεν βρείτε την απάντηση που ψάχνετε, επικοινωνήστε μαζί μας — απαντάμε εντός 24 ωρών.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Συγκεντρώσαμε τις πιο συχνές ερωτήσεις που λαμβάνουμε από πελάτες. Αν δεν βρείτε την απάντηση που ψάχνετε, επικοινωνήστε μαζί μας — απαντάμε εντός 24 ωρών.' ); ?></p>
 
         <div class="faq-stats reveal reveal-up">
             <div><span class="num"><?php echo esc_html( $total_q ); ?></span><span class="lab">ερωτήσεις</span></div>

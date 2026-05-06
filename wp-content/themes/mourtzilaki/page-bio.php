@@ -95,7 +95,7 @@ $photo = $lead['photo'] ?? '';
                     <span class="bio-badge"><span class="bbg-dot"></span> Διαμεσολαβήτρια</span>
                 </div>
 
-                <p class="bio-tagline"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : ( $lead['bio'] ?? '' ) ); ?></p>
+                <p class="bio-tagline"><?php echo mourtzilaki_field_inline( ! empty( $h['lead'] ) ? $h['lead'] : ( $lead['bio'] ?? '' ) ); ?></p>
 
                 <div class="bio-cta">
                     <a class="btn btn-primary" href="<?php echo esc_url( mourtzilaki_page_url( 'contact' ) ); ?>">Κλείστε ραντεβού <span class="arrow">→</span></a>

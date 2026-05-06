@@ -22,7 +22,7 @@ if ( '' === $footer_legal_right ) { $footer_legal_right = 'Μέλος του Δ�
         <div class="top">
             <div class="col">
                 <div class="brand-foot"><?php bloginfo( 'name' ); ?></div>
-                <p><?php echo esc_html( $footer_about_text ); ?></p>
+                <p><?php echo mourtzilaki_field_inline( $footer_about_text ); ?></p>
             </div>
             <div class="col">
                 <h4>Πλοήγηση</h4>

@@ -18,7 +18,7 @@ $h = mourtzilaki_page_hero();
     <div class="container container-narrow">
         <span class="eyebrow"><?php echo esc_html( ! empty( $h['eyebrow'] ) ? $h['eyebrow'] : 'Τομείς εξειδίκευσης' ); ?></span>
         <h1 class="h-1 mt-2"><?php echo esc_html( ! empty( $h['title'] ) ? $h['title'] : 'Εξειδίκευση εκεί που πραγματικά μετράει.' ); ?></h1>
-        <p class="lead"><?php echo esc_html( ! empty( $h['lead'] ) ? $h['lead'] : 'Καλύπτουμε τους τομείς δικαίου που συναντούν συχνότερα ιδιώτες και επιχειρήσεις στην Ελλάδα. Σε κάθε υπόθεση, ορίζουμε καθαρή στρατηγική, ρεαλιστικά χρονοδιαγράμματα και διαφανές κόστος.' ); ?></p>
+        <p class="lead"><?php echo ! empty( $h['lead'] ) ? mourtzilaki_field_inline( $h['lead'] ) : esc_html( 'Καλύπτουμε τους τομείς δικαίου που συναντούν συχνότερα ιδιώτες και επιχειρήσεις στην Ελλάδα. Σε κάθε υπόθεση, ορίζουμε καθαρή στρατηγική, ρεαλιστικά χρονοδιαγράμματα και διαφανές κόστος.' ); ?></p>
     </div>
 </section>
 
@@ -31,7 +31,7 @@ $h = mourtzilaki_page_hero();
                 <a class="svc-tile reveal reveal-up reveal-d<?php echo (int) min( ( $i % 4 ) + 1, 6 ); ?>" href="<?php echo esc_url( get_permalink( $svc ) ); ?>">
                     <span class="svc-tile-icon" aria-hidden="true"><?php echo mourtzilaki_service_icon( get_the_title( $svc ) ); ?></span>
                     <h3 class="svc-tile-title"><?php echo esc_html( get_the_title( $svc ) ); ?></h3>
-                    <p class="svc-tile-desc"><?php echo esc_html( wp_trim_words( $short, 22, '…' ) ); ?></p>
+                    <p class="svc-tile-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $short ), 22, '…' ) ); ?></p>
                     <span class="svc-tile-more">Μάθετε περισσότερα <span class="arrow">→</span></span>
                 </a>
             <?php endforeach; ?>
