@@ -84,16 +84,13 @@ class Mourtzilaki_Analytics {
     /* ---------- Admin page ------------------------------------- */
 
     public function add_admin_menu() {
-        $icon = 'data:image/svg+xml;base64,' . base64_encode(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#a7aaad"><path d="M3 3h2v18H3zm4 10h2v8H7zm4-6h2v14h-2zm4 4h2v10h-2zm4-8h2v18h-2z"/></svg>'
-        );
         add_menu_page(
             'Analytics',
             'Analytics',
             'manage_options',
             'mz-analytics',
             array( $this, 'render_dashboard' ),
-            $icon,
+            'dashicons-chart-line',
             3
         );
     }
@@ -176,107 +173,97 @@ class Mourtzilaki_Analytics {
 
     public function render_dashboard() {
         $d = $this->get_dashboard_data();
-        $user = wp_get_current_user();
         ?>
-        <div class="mz-an-wrap">
+        <div class="wrap mz-an-wrap">
 
-            <header class="mz-an-hero">
+            <div class="mz-an-head">
                 <div>
-                    <span class="mz-an-eyebrow">
-                        <span class="mz-an-dot"></span> Live · Self-hosted analytics
-                    </span>
-                    <h1>Καλώς ήρθες, <?php echo esc_html( $user->display_name ?: $user->user_login ); ?></h1>
-                    <p>Πανόραμα της κίνησης του site σας τις τελευταίες 30 ημέρες.</p>
+                    <h1>Analytics</h1>
+                    <p>Επισκεψιμότητα και υποβολές φόρμας — τελευταίες 30 ημέρες.</p>
                 </div>
-                <div class="mz-an-meta">
-                    <div class="mz-an-meta-it">
-                        <span class="lab">Σήμερα</span>
-                        <span class="val"><?php echo esc_html( wp_date( 'l, j F Y' ) ); ?></span>
-                    </div>
-                    <div class="mz-an-meta-it">
-                        <span class="lab">Ώρα</span>
-                        <span class="val"><?php echo esc_html( wp_date( 'H:i' ) ); ?></span>
-                    </div>
-                </div>
-            </header>
+                <span class="mz-an-when"><?php echo esc_html( wp_date( 'j M Y · H:i' ) ); ?></span>
+            </div>
 
-            <section class="mz-an-kpis">
+            <div class="mz-an-kpis">
                 <div class="mz-an-kpi">
                     <span class="mz-an-kpi-lab">Συνολικές προβολές</span>
                     <span class="mz-an-kpi-val"><?php echo number_format_i18n( $d['total_views'] ); ?></span>
                     <span class="mz-an-kpi-sub <?php echo $d['week_change'] >= 0 ? 'up' : 'down'; ?>">
-                        <?php echo $d['week_change'] >= 0 ? '▲' : '▼'; ?> <?php echo abs( $d['week_change'] ); ?>% αυτή την εβδομάδα
+                        <?php echo $d['week_change'] >= 0 ? '↑' : '↓'; ?> <?php echo abs( $d['week_change'] ); ?>% τη βδομάδα
                     </span>
                 </div>
                 <div class="mz-an-kpi">
                     <span class="mz-an-kpi-lab">Σήμερα</span>
                     <span class="mz-an-kpi-val"><?php echo number_format_i18n( $d['today_views'] ); ?></span>
-                    <span class="mz-an-kpi-sub neutral"><?php echo number_format_i18n( $d['week_views'] ); ?> προβολές · 7 ημέρες</span>
+                    <span class="mz-an-kpi-sub"><?php echo number_format_i18n( $d['week_views'] ); ?> · 7 ημέρες</span>
                 </div>
                 <div class="mz-an-kpi">
-                    <span class="mz-an-kpi-lab">Φόρμες επικοινωνίας</span>
+                    <span class="mz-an-kpi-lab">Φόρμες</span>
                     <span class="mz-an-kpi-val"><?php echo number_format_i18n( $d['form_total'] ); ?></span>
-                    <span class="mz-an-kpi-sub neutral"><?php echo number_format_i18n( $d['form_today'] ); ?> σήμερα</span>
+                    <span class="mz-an-kpi-sub"><?php echo number_format_i18n( $d['form_today'] ); ?> σήμερα</span>
                 </div>
                 <div class="mz-an-kpi">
-                    <span class="mz-an-kpi-lab">Συντελεστής μετατροπής</span>
+                    <span class="mz-an-kpi-lab">Conversion</span>
                     <span class="mz-an-kpi-val"><?php echo esc_html( $d['conv_rate'] ); ?>%</span>
-                    <span class="mz-an-kpi-sub neutral"><?php echo number_format_i18n( $d['content_count'] ); ?> δημοσιευμένα items</span>
+                    <span class="mz-an-kpi-sub"><?php echo number_format_i18n( $d['content_count'] ); ?> items</span>
                 </div>
-            </section>
+            </div>
 
-            <section class="mz-an-card">
-                <header class="mz-an-card-h">
+            <div class="mz-an-card">
+                <div class="mz-an-card-h">
                     <h2>Επισκεψιμότητα · 30 ημέρες</h2>
                     <span class="mz-an-tag">Daily pageviews</span>
-                </header>
-                <div class="mz-an-chart">
-                    <canvas id="mz-views-chart" height="320"></canvas>
                 </div>
-            </section>
+                <div class="mz-an-chart">
+                    <canvas id="mz-views-chart"></canvas>
+                </div>
+            </div>
 
-            <section class="mz-an-grid">
-                <article class="mz-an-card">
-                    <header class="mz-an-card-h">
+            <div class="mz-an-grid">
+                <div class="mz-an-card">
+                    <div class="mz-an-card-h">
                         <h2>Top προβολές</h2>
                         <span class="mz-an-tag">Όλες οι ώρες</span>
-                    </header>
+                    </div>
+                    <?php if ( empty( $d['top_posts'] ) ) : ?>
+                        <div class="mz-an-empty">Δεν υπάρχουν αρκετά δεδομένα ακόμη.</div>
+                    <?php else : ?>
                     <ol class="mz-an-list">
-                        <?php if ( empty( $d['top_posts'] ) ) : ?>
-                            <li class="mz-an-empty">Δεν υπάρχουν αρκετά δεδομένα ακόμη.</li>
-                        <?php else : foreach ( $d['top_posts'] as $i => $p ) :
+                        <?php $rank = 0; foreach ( $d['top_posts'] as $p ) :
                             $views = (int) get_post_meta( $p->ID, self::META_VIEWS, true );
                             if ( ! $views ) { continue; }
+                            $rank++;
                             $type = get_post_type_object( $p->post_type );
+                            $type_label = $type ? $type->labels->singular_name : $p->post_type;
                         ?>
                             <li>
-                                <span class="mz-an-rank"><?php echo esc_html( str_pad( $i + 1, 2, '0', STR_PAD_LEFT ) ); ?></span>
-                                <a class="mz-an-title" href="<?php echo esc_url( get_permalink( $p ) ); ?>" target="_blank" rel="noopener">
+                                <span class="mz-an-rank"><?php echo (int) $rank; ?>.</span>
+                                <a class="mz-an-title" href="<?php echo esc_url( get_permalink( $p ) ); ?>" target="_blank" rel="noopener" title="<?php echo esc_attr( $type_label ); ?>">
                                     <?php echo esc_html( get_the_title( $p ) ); ?>
                                 </a>
-                                <span class="mz-an-type"><?php echo esc_html( $type ? $type->labels->singular_name : $p->post_type ); ?></span>
                                 <span class="mz-an-count"><?php echo number_format_i18n( $views ); ?></span>
                             </li>
-                        <?php endforeach; endif; ?>
+                        <?php endforeach; ?>
                     </ol>
-                </article>
+                    <?php endif; ?>
+                </div>
 
-                <article class="mz-an-card">
-                    <header class="mz-an-card-h">
+                <div class="mz-an-card">
+                    <div class="mz-an-card-h">
                         <h2>Πρόσφατες υποβολές φόρμας</h2>
                         <span class="mz-an-tag">Τελευταίες 10</span>
-                    </header>
+                    </div>
                     <?php if ( empty( $d['form_log'] ) ) : ?>
                         <div class="mz-an-empty-state">
                             <span class="mz-an-empty-ic" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                             </span>
-                            <p>Δεν έχουν παραληφθεί ακόμη μηνύματα μέσω φόρμας.</p>
+                            <p>Δεν έχουν παραληφθεί ακόμη μηνύματα.</p>
                         </div>
                     <?php else : ?>
                         <ul class="mz-an-msgs">
                             <?php foreach ( $d['form_log'] as $entry ) :
-                                $time = ! empty( $entry['time'] ) ? mysql2date( 'd.m.Y · H:i', $entry['time'] ) : '';
+                                $time = ! empty( $entry['time'] ) ? mysql2date( 'j M · H:i', $entry['time'] ) : '';
                                 $name = ! empty( $entry['name'] ) ? $entry['name'] : 'Άγνωστος';
                             ?>
                                 <li>
@@ -286,22 +273,18 @@ class Mourtzilaki_Analytics {
                                         <?php if ( ! empty( $entry['email'] ) ) : ?>
                                             <span class="mz-an-msg-email"><?php echo esc_html( $entry['email'] ); ?></span>
                                         <?php endif; ?>
-                                        <?php if ( ! empty( $entry['subject'] ) ) : ?>
-                                            <em><?php echo esc_html( $entry['subject'] ); ?></em>
-                                        <?php endif; ?>
                                     </span>
                                     <span class="mz-an-msg-time"><?php echo esc_html( $time ); ?></span>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
                     <?php endif; ?>
-                </article>
-            </section>
+                </div>
+            </div>
 
-            <footer class="mz-an-foot">
-                <span>Τα δεδομένα αποθηκεύονται τοπικά στη δική σας βάση δεδομένων.</span>
-                <span>Δεν χρησιμοποιούνται cookies, δεν στέλνονται δεδομένα σε τρίτους.</span>
-            </footer>
+            <p class="mz-an-foot">
+                <span>Self-hosted · χωρίς cookies · χωρίς τρίτους.</span>
+            </p>
         </div>
         <?php
     }

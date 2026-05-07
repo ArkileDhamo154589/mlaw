@@ -13,12 +13,12 @@
     var values = MZ_ANALYTICS.series_values.map(function (v) { return parseInt(v, 10) || 0; });
 
     var ctx = canvas.getContext('2d');
-    var grad = ctx.createLinearGradient(0, 0, 0, 320);
-    grad.addColorStop(0, 'rgba(197,165,114,0.35)');
-    grad.addColorStop(1, 'rgba(197,165,114,0)');
+    var grad = ctx.createLinearGradient(0, 0, 0, 240);
+    grad.addColorStop(0, 'rgba(180,138,58,0.18)');
+    grad.addColorStop(1, 'rgba(180,138,58,0)');
 
-    Chart.defaults.color = 'rgba(245,236,217,0.55)';
-    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.color = '#6b7280';
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     Chart.defaults.font.size = 11;
 
     new Chart(ctx, {
@@ -28,16 +28,16 @@
             datasets: [{
                 label: 'Προβολές',
                 data: values,
-                borderColor: '#c5a572',
+                borderColor: '#b48a3a',
                 borderWidth: 2,
                 fill: true,
                 backgroundColor: grad,
-                tension: 0.35,
+                tension: 0.3,
                 pointRadius: 0,
-                pointHoverRadius: 6,
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#c5a572',
-                pointHoverBorderWidth: 2,
+                pointHoverRadius: 4,
+                pointHoverBackgroundColor: '#b48a3a',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
             }]
         },
         options: {
@@ -47,69 +47,34 @@
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: 'rgba(13,12,10,0.95)',
-                    borderColor: 'rgba(197,165,114,0.35)',
-                    borderWidth: 1,
+                    backgroundColor: '#1f1a14',
+                    borderColor: '#1f1a14',
+                    borderWidth: 0,
                     titleColor: '#fff',
-                    bodyColor: '#c5a572',
-                    titleFont: { weight: '500', size: 12 },
-                    bodyFont: { weight: '600', size: 14 },
-                    padding: 12,
+                    bodyColor: '#f6f3ec',
+                    padding: 10,
                     cornerRadius: 6,
                     displayColors: false,
                     callbacks: {
                         title: function (items) { return items[0].label; },
-                        label: function (item) { return item.parsed.y + ' προβολές'; }
+                        label:  function (item)  { return item.parsed.y + ' προβολές'; }
                     }
                 }
             },
             scales: {
                 x: {
-                    grid: { display: false },
+                    grid:   { display: false },
                     border: { display: false },
-                    ticks: { maxRotation: 0, autoSkipPadding: 18, color: 'rgba(245,236,217,0.4)' }
+                    ticks:  { maxRotation: 0, autoSkipPadding: 18 }
                 },
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+                    grid:   { color: '#f0f1f3' },
                     border: { display: false },
-                    ticks: {
-                        precision: 0,
-                        color: 'rgba(245,236,217,0.4)',
-                        padding: 8
-                    }
+                    ticks:  { precision: 0, padding: 6 }
                 }
             },
-            animation: {
-                duration: 1000,
-                easing: 'easeOutQuart'
-            }
+            animation: { duration: 400, easing: 'easeOutQuart' }
         }
-    });
-
-    // Animated counters
-    var counters = document.querySelectorAll('.mz-an-kpi-val');
-    counters.forEach(function (el) {
-        var raw = el.textContent.replace(/[^\d.]/g, '');
-        if (!raw) { return; }
-        var target = parseFloat(raw);
-        if (isNaN(target) || target === 0) { return; }
-        var hasPercent = el.textContent.indexOf('%') !== -1;
-        var duration = 800;
-        var start = performance.now();
-        var ease = function (t) { return 1 - Math.pow(1 - t, 3); };
-        function step(now) {
-            var progress = Math.min(1, (now - start) / duration);
-            var current = target * ease(progress);
-            var formatted;
-            if (hasPercent) {
-                formatted = current.toFixed(1).replace('.', ',') + '%';
-            } else {
-                formatted = Math.round(current).toLocaleString('el-GR');
-            }
-            el.textContent = formatted;
-            if (progress < 1) { requestAnimationFrame(step); }
-        }
-        requestAnimationFrame(step);
     });
 })();
