@@ -203,8 +203,9 @@ html, body {
     .site-header .inner { min-height: var(--header-h-mobile); padding: 6px 0; }
     .site-header.is-scrolled { box-shadow: 0 4px 16px rgba(31,26,20,0.06); }
     .header-cta .btn-primary { display: none; }
-    .menu-toggle { width: 40px; height: 40px; }
-    .menu-toggle .bars { width: 16px; }
+    .header-cta { gap: 0; padding-right: 8px; }
+    .menu-toggle { width: 44px; height: 44px; }
+    .menu-toggle .bars { width: 18px; }
     .mobile-menu { padding-top: calc(var(--header-h-mobile) + 20px); }
 }
 /* Lock scroll when mobile menu is open without layout shift. */
