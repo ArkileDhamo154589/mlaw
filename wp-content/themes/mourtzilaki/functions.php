@@ -12,6 +12,11 @@ if ( file_exists( __DIR__ . '/inc/seeder.php' ) ) {
     require_once __DIR__ . '/inc/seeder.php';
 }
 
+/* Site Settings admin UI polish. */
+if ( file_exists( __DIR__ . '/inc/admin-settings-ui.php' ) ) {
+    require_once __DIR__ . '/inc/admin-settings-ui.php';
+}
+
 /**
  * Theme setup.
  */
@@ -669,12 +674,6 @@ add_filter( 'post_row_actions', function ( $actions, $post ) {
     return $actions;
 }, 10, 2 );
 
-add_action( 'admin_print_styles-post.php', function () {
-    $screen = get_current_screen();
-    if ( $screen && 'mz_site' === $screen->post_type ) {
-        echo '<style>#submitdiv .misc-pub-section:not(.misc-pub-curtime, .misc-pub-section-last), #delete-action, #minor-publishing-actions, #titlediv .inside { } #post-preview, .page-title-action { display:none !important; }</style>';
-    }
-} );
 
 /* ACF: Site Settings field group. */
 add_action( 'acf/init', function () {
