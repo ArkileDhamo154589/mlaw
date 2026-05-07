@@ -182,11 +182,11 @@ $type_label = array( 'edu' => 'Σπουδές', 'work' => 'Εργασία', 'cer
 <section class="bio-stats">
     <div class="container">
         <div class="bs-grid reveal reveal-up">
-            <?php foreach ( $stats as $i => $row ) :
+            <?php foreach ( $stats as $row ) :
                 $num = $row[0] ?? '';
                 $lab = $row[1] ?? '';
                 if ( '' === $num && '' === $lab ) { continue; }
-                if ( $i > 0 ) : ?><div class="bs-sep"></div><?php endif; ?>
+                ?>
                 <div class="bs-item">
                     <div class="bs-num"><?php
                         $num_html = esc_html( $num );
