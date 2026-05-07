@@ -1,0 +1,20 @@
+# Allow public access to media files for social media link previews
+# (Facebook, Twitter/X, LinkedIn, WhatsApp scrapers don't send Referer).
+# Overrides any hotlink protection set globally on the host.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Bypass any inherited hotlink RewriteCond for media files.
+    RewriteRule \.(jpe?g|png|gif|webp|svg|ico|bmp|avif|woff2?|ttf|eot|otf|pdf)$ - [L]
+</IfModule>
+
+<FilesMatch "\.(jpe?g|png|gif|webp|svg|ico|bmp|avif|woff2?|ttf|eot|otf|pdf)$">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Allow from all
+        Satisfy any
+    </IfModule>
+</FilesMatch>

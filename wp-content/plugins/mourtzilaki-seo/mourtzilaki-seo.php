@@ -30,8 +30,8 @@ class Mourtzilaki_SEO {
         add_filter( 'document_title_parts',   array( $self, 'filter_title' ), 20 );
         add_action( 'wp_head',                array( $self, 'print_resource_hints' ), 0 );
         add_action( 'wp_head',                array( $self, 'print_meta' ), 1 );
-        add_action( 'wp_head',                array( $self, 'print_robots' ), 2 );
         add_action( 'wp_head',                array( $self, 'print_jsonld' ), 5 );
+        add_filter( 'wp_robots',              array( $self, 'filter_robots' ), 100 );
         add_action( 'admin_menu',             array( $self, 'add_settings_page' ) );
         add_action( 'admin_init',             array( $self, 'register_settings' ) );
     }
@@ -48,15 +48,38 @@ class Mourtzilaki_SEO {
     }
 
     /* -----------------------------------------------------------
-     *  Robots meta
+     *  Robots meta — filtered through wp_robots so the plugin owns the
+     *  single robots tag emitted on the page (overrides WP's default
+     *  noindex,nofollow that comes from blog_public=0).
      * --------------------------------------------------------- */
-    public function print_robots() {
-        if ( is_admin() ) { return; }
+    public function filter_robots( $robots ) {
+        if ( is_admin() ) { return $robots; }
+
+        // Drop WP's inherited directives so our values are authoritative.
+        unset( $robots['noindex'], $robots['nofollow'], $robots['noarchive'], $robots['nosnippet'] );
+
         if ( is_search() || is_404() || is_preview() ) {
-            echo '<meta name="robots" content="noindex,follow">' . "\n";
-            return;
+            $robots['noindex'] = true;
+            $robots['follow']  = true;
+            return $robots;
         }
-        echo '<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">' . "\n";
+
+        // Per-post override via SEO meta box (future use).
+        if ( is_singular() ) {
+            $no = (string) get_post_meta( get_queried_object_id(), '_mz_seo_noindex', true );
+            if ( '1' === $no ) {
+                $robots['noindex'] = true;
+                $robots['follow']  = true;
+                return $robots;
+            }
+        }
+
+        $robots['index']             = true;
+        $robots['follow']            = true;
+        $robots['max-snippet']       = -1;
+        $robots['max-image-preview'] = 'large';
+        $robots['max-video-preview'] = -1;
+        return $robots;
     }
 
     /* -----------------------------------------------------------
@@ -469,7 +492,10 @@ JS;
         $img_url = $img_id ? wp_get_attachment_image_url( $img_id, 'full' ) : '';
         $kw      = is_singular() ? get_post_meta( get_queried_object_id(), self::META_KW, true ) : '';
         $site    = get_bloginfo( 'name' );
-        $locale  = get_locale();
+        // OG locale must be a "lang_REGION" pair (Facebook docs). Site content
+        // is Greek; default to el_GR regardless of WP install locale (which on
+        // this site is en_US for the admin even though content is Greek).
+        $locale = 'el_GR';
         $twitter = ! empty( $opts['twitter_handle'] ) ? '@' . ltrim( $opts['twitter_handle'], '@' ) : '';
 
         echo "\n<!-- Mourtzilaki SEO -->\n";
