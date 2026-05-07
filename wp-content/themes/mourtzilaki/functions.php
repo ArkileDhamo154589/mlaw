@@ -704,6 +704,8 @@ add_action( 'acf/init', function () {
             array( 'key' => 'field_mz_s_foot_legal',   'label' => 'Footer legal (δεξιά)',       'name' => 'footer_legal_right',       'type' => 'text', 'placeholder' => 'Μέλος του Δικηγορικού Συλλόγου Αθηνών' ),
             array( 'key' => 'field_mz_s_foot_copy',    'label' => 'Copyright text (override)',  'name' => 'footer_copyright',         'type' => 'text',
                    'instructions' => 'Αν αφεθεί κενό: «© [Έτος] [Όνομα site]. Με την επιφύλαξη παντός δικαιώματος.»' ),
+            array( 'key' => 'field_mz_s_social',       'label' => 'Social links',                'name' => 'social_links',             'type' => 'textarea', 'rows' => 6,
+                   'instructions' => "Μία γραμμή ανά link, μορφή: <code>platform | url</code>.<br>Υποστηρίζονται: linkedin, facebook, instagram, twitter (x), youtube, tiktok, whatsapp, viber, email.<br>Παράδειγμα:<br><code>linkedin | https://www.linkedin.com/in/...</code><br><code>facebook | https://facebook.com/...</code>" ),
 
             array( 'key' => 'field_mz_s_tab_contact',  'label' => 'Επικοινωνία', 'type' => 'tab' ),
             array( 'key' => 'field_mz_s_c_addr',       'label' => 'Διεύθυνση', 'name' => 'contact_address', 'type' => 'textarea', 'rows' => 2,
@@ -2117,6 +2119,8 @@ add_action( 'acf/init', function () {
                 array( 'key' => 'field_mz_cnp_form_eb',    'label' => 'Φόρμα — eyebrow',     'name' => 'contact_form_eyebrow', 'type' => 'text', 'placeholder' => 'Φόρμα επικοινωνίας' ),
                 array( 'key' => 'field_mz_cnp_form_t',     'label' => 'Φόρμα — επικεφαλίδα', 'name' => 'contact_form_title',   'type' => 'text', 'placeholder' => 'Στείλτε μας μήνυμα' ),
                 array( 'key' => 'field_mz_cnp_form_s',     'label' => 'Φόρμα — υπότιτλος',   'name' => 'contact_form_subtitle','type' => 'text', 'placeholder' => 'Απαντάμε εντός 24 ωρών...' ),
+                array( 'key' => 'field_mz_cnp_form_snip',  'label' => 'Φόρμα — snippet/shortcode', 'name' => 'contact_form_snippet', 'type' => 'textarea', 'rows' => 4, 'new_lines' => '',
+                       'instructions' => 'Επικόλληση shortcode φόρμας (π.χ. CF7: <code>[contact-form-7 id="123" title="Φόρμα Επικοινωνίας"]</code>) ή HTML/iframe embed.<br>Αν αφεθεί κενό, χρησιμοποιείται το παλιό CF7 ID από το Customizer.' ),
                 array( 'key' => 'field_mz_cnp_b1_t',       'label' => 'Πλάγια ενότητα 1 — τίτλος', 'name' => 'contact_side1_title', 'type' => 'text', 'placeholder' => 'Ωράριο γραφείου' ),
                 array( 'key' => 'field_mz_cnp_b2_t',       'label' => 'Πλάγια ενότητα 2 — τίτλος', 'name' => 'contact_side2_title', 'type' => 'text', 'placeholder' => 'Επείγουσες υποθέσεις' ),
                 array( 'key' => 'field_mz_cnp_b2_x',       'label' => 'Πλάγια ενότητα 2 — κείμενο','name' => 'contact_side2_text',  'type' => 'wysiwyg', 'media_upload' => 0, 'toolbar' => 'basic', 'tabs' => 'visual' ),
@@ -2371,6 +2375,51 @@ function mourtzilaki_parse_lines( $text, $delimiter = '|' ) {
         if ( '' === $line ) { continue; }
         $parts = array_map( 'trim', explode( $delimiter, $line ) );
         $out[] = $parts;
+    }
+    return $out;
+}
+
+/**
+ * Inline SVG icons for social platforms.
+ */
+function mourtzilaki_social_icons() {
+    return array(
+        'linkedin'  => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5V8h3v11zM6.5 6.7c-1 0-1.7-.7-1.7-1.6S5.5 3.5 6.5 3.5s1.7.7 1.7 1.6S7.5 6.7 6.5 6.7zM19 19h-3v-5.6c0-1.4-.5-2.3-1.7-2.3-.9 0-1.5.6-1.7 1.2-.1.2-.1.5-.1.8V19h-3V8h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.5 1.3 3.5 4.1V19z"/></svg>',
+        'facebook'  => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12z"/></svg>',
+        'instagram' => '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>',
+        'twitter'   => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231L18.244 2.25z"/></svg>',
+        'x'         => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231L18.244 2.25z"/></svg>',
+        'youtube'   => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M23 7.2a3 3 0 00-2.1-2.1C19 4.5 12 4.5 12 4.5s-7 0-8.9.6A3 3 0 001 7.2C.5 9.1.5 12 .5 12s0 2.9.5 4.8a3 3 0 002.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 002.1-2.1c.5-1.9.5-4.8.5-4.8s0-2.9-.5-4.8zM9.8 15.5V8.5l6 3.5-6 3.5z"/></svg>',
+        'tiktok'    => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M19.6 6.7a5.7 5.7 0 01-3.4-1.1 5.7 5.7 0 01-2.2-3.6h-3.3v12.6a2.7 2.7 0 11-2.7-2.7c.3 0 .6 0 .8.1V8.7a6 6 0 00-.8-.1 6 6 0 106 6V9.5a8.9 8.9 0 005.6 1.9V8.1a5.7 5.7 0 01-0-1.4z"/></svg>',
+        'whatsapp'  => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A10 10 0 003.7 17.2L2.5 21.5l4.4-1.2a10 10 0 0013.6-9.4 10 10 0 00-3-7.4zM12 19.4a8.4 8.4 0 01-4.3-1.2l-.3-.2-2.6.7.7-2.5-.2-.3a8.4 8.4 0 1115.1-5 8.4 8.4 0 01-8.4 8.5zm4.6-6.3c-.3-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.9 6.9 0 01-3.4-3 .4.4 0 010-.5l.4-.5.3-.4a.4.4 0 000-.4l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-1 2.3 5.3 5.3 0 001.1 2.8 12 12 0 004.7 4.1c2.8 1.1 2.8.7 3.3.7a2.7 2.7 0 001.8-1.3 2.2 2.2 0 00.2-1.3c-.1-.1-.3-.2-.6-.3z"/></svg>',
+        'viber'     => '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M19.7 14.4c-.5-.4-3.1-1.9-3.5-2.1-.5-.2-.8-.3-1.2.3s-1.4 1.7-1.7 2-.6.4-1.1.1a13.7 13.7 0 01-4-2.5 15 15 0 01-2.7-3.4c-.3-.5 0-.8.2-1l.7-.8a3.6 3.6 0 00.5-.7.8.8 0 000-.7l-1.6-3.7c-.4-.9-.8-.7-1.1-.8h-.9a1.7 1.7 0 00-1.3.6 5.2 5.2 0 00-1.6 3.9 9.1 9.1 0 002 4.7c.2.3 3.4 5.2 8.3 7.3 4.9 2 4.9 1.4 5.8 1.3a4.7 4.7 0 003.1-2.2 3.9 3.9 0 00.3-2.2c-.2-.2-.5-.3-1-.5z"/></svg>',
+        'email'     => '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+    );
+}
+
+/**
+ * Parse social_links setting and return array of [platform, url, icon_svg].
+ * Drops rows with unknown platforms or empty URLs.
+ */
+function mourtzilaki_get_social_links() {
+    $raw = mourtzilaki_setting( 'social_links', '' );
+    $rows = mourtzilaki_parse_lines( $raw );
+    if ( empty( $rows ) ) { return array(); }
+    $icons = mourtzilaki_social_icons();
+    $out = array();
+    foreach ( $rows as $row ) {
+        $platform = strtolower( trim( $row[0] ?? '' ) );
+        $url      = trim( $row[1] ?? '' );
+        if ( '' === $platform || '' === $url || ! isset( $icons[ $platform ] ) ) { continue; }
+        if ( 'email' === $platform && 0 !== stripos( $url, 'mailto:' ) && false !== strpos( $url, '@' ) ) {
+            $url = 'mailto:' . $url;
+        }
+        $out[] = array(
+            'platform' => $platform,
+            'url'      => $url,
+            'label'    => ucfirst( $platform ),
+            'icon'     => $icons[ $platform ],
+        );
     }
     return $out;
 }

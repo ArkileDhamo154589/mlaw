@@ -68,6 +68,22 @@ $col_hours_title    = mourtzilaki_setting( 'footer_col_hours_title',   'Ωράρ
                 </ul>
             </div>
         </div>
+        <?php $social = mourtzilaki_get_social_links(); ?>
+        <?php if ( ! empty( $social ) ) : ?>
+            <div class="social-row" aria-label="<?php esc_attr_e( 'Κοινωνικά δίκτυα', 'mourtzilaki' ); ?>">
+                <ul class="social-list">
+                    <?php foreach ( $social as $s ) : ?>
+                        <li>
+                            <a href="<?php echo esc_url( $s['url'] ); ?>"
+                               aria-label="<?php echo esc_attr( $s['label'] ); ?>"
+                               <?php echo 0 === stripos( $s['url'], 'mailto:' ) ? '' : 'target="_blank" rel="noopener"'; ?>>
+                                <?php echo $s['icon']; ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
         <div class="legal">
             <?php if ( $footer_copyright ) : ?>
                 <span><?php echo esc_html( str_replace( '[Year]', date( 'Y' ), $footer_copyright ) ); ?></span>

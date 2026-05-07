@@ -65,7 +65,12 @@ $social = mourtzilaki_parse_lines( $g( 'contact_social', "linkedin | #\nfacebook
                 <p class="muted mt-2"><?php echo esc_html( $g( 'contact_form_subtitle', 'Απαντάμε εντός 24 ωρών. Όλες οι επικοινωνίες είναι αυστηρά εμπιστευτικές.' ) ); ?></p>
 
                 <div class="contact-form mt-6">
-                    <?php if ( $cf7_id && function_exists( 'do_shortcode' ) ) :
+                    <?php
+                    $form_snippet = $g( 'contact_form_snippet', '' );
+                    if ( '' !== trim( $form_snippet ) ) :
+                        // Allow shortcodes (e.g. CF7) and embedded HTML/iframes from the snippet field.
+                        echo do_shortcode( $form_snippet );
+                    elseif ( $cf7_id && function_exists( 'do_shortcode' ) ) :
                         echo do_shortcode( '[contact-form-7 id="' . (int) $cf7_id . '" title="Φόρμα Επικοινωνίας"]' );
                     else : ?>
                         <p class="muted">Η φόρμα δεν είναι διαθέσιμη. Στείλτε email στο <a href="mailto:<?php echo esc_attr( $c['email'] ); ?>" style="border-bottom: 1px solid var(--gold);"><?php echo esc_html( $c['email'] ); ?></a>.</p>

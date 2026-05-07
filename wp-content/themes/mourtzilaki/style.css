@@ -216,7 +216,6 @@ body.menu-open { overflow: hidden; touch-action: none; }
     justify-content: space-between;
     min-height: var(--header-h);
     padding: 8px 0;
-    height: 20px;
 }
 
 .brand {
@@ -255,7 +254,12 @@ body.menu-open { overflow: hidden; touch-action: none; }
 }
 .brand-with-logo:hover .brand-logo-img { transform: scale(1.04); }
 @media (max-width: 900px) {
-    .brand-logo-img { max-height: 80px; }
+    .brand-logo-img {
+        height: 52px;
+        max-height: 52px;
+        width: auto;
+        max-width: 60vw;
+    }
     .brand .brand-sub { display: none; }
     .brand .brand-name { font-size: 16px; }
     .brand .brand-mark { width: 20px; }
@@ -745,14 +749,55 @@ body.menu-open .mobile-menu {
     object-fit: contain;
     filter: brightness(0) invert(1);
 }
+.site-footer .social-row {
+    margin-top: 28px;
+    display: flex;
+    justify-content: flex-end;
+}
+.site-footer .social-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.site-footer .social-list a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #d8cfb9;
+    transition: color .15s, border-color .15s, background .15s, transform .15s;
+}
+.site-footer .social-list a:hover {
+    color: var(--ink);
+    background: var(--gold);
+    border-color: var(--gold);
+    transform: translateY(-1px);
+}
 .site-footer .legal {
-    margin-top: 32px;
+    margin-top: 24px;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
     font-size: 13px;
     color: #8c826a;
+}
+@media (max-width: 600px) {
+    .site-footer { padding: 56px 0 28px; }
+    .site-footer .top { padding-bottom: 40px; }
+    .site-footer .social-row { justify-content: center; margin-top: 24px; }
+    .site-footer .legal {
+        justify-content: center;
+        text-align: center;
+        gap: 8px;
+    }
+    .site-footer .legal span { flex-basis: 100%; }
 }
 
 /* =========================================================
