@@ -17,6 +17,11 @@ if ( file_exists( __DIR__ . '/inc/admin-settings-ui.php' ) ) {
     require_once __DIR__ . '/inc/admin-settings-ui.php';
 }
 
+/* "Περιεχόμενο" parent menu that groups all content CPTs. */
+if ( file_exists( __DIR__ . '/inc/admin-content-menu.php' ) ) {
+    require_once __DIR__ . '/inc/admin-content-menu.php';
+}
+
 /**
  * Theme setup.
  */
@@ -1596,13 +1601,12 @@ add_action( 'init', function () {
             'singular_name' => 'Slide',
             'add_new_item'  => 'Νέο slide',
             'edit_item'     => 'Επεξεργασία slide',
-            'all_items'     => 'Όλα τα slides',
+            'all_items'     => 'Hero Slides',
             'menu_name'     => 'Hero Slides',
         ),
         'public'        => false,
         'show_ui'       => true,
-        'show_in_menu'  => true,
-        'menu_position' => 22,
+        'show_in_menu'  => 'mz-content',
         'menu_icon'     => 'dashicons-images-alt2',
         'supports'      => array( 'title', 'page-attributes' ),
         'has_archive'   => false,
@@ -1615,18 +1619,35 @@ add_action( 'init', function () {
             'singular_name' => 'Τομέας',
             'add_new_item'  => 'Νέος τομέας',
             'edit_item'     => 'Επεξεργασία τομέα',
-            'all_items'     => 'Όλοι οι τομείς',
+            'all_items'     => 'Τομείς',
             'menu_name'     => 'Τομείς',
         ),
         'public'             => true,
         'publicly_queryable' => true,
         'show_ui'            => true,
-        'show_in_menu'       => true,
-        'menu_position'      => 23,
+        'show_in_menu'       => 'mz-content',
         'menu_icon'          => 'dashicons-portfolio',
         'supports'           => array( 'title', 'page-attributes', 'editor' ),
         'has_archive'        => false,
         'rewrite'            => array( 'slug' => 'tomeas', 'with_front' => false ),
+    ) );
+
+    register_post_type( 'mz_member', array(
+        'labels' => array(
+            'name'          => 'Δικηγόροι',
+            'singular_name' => 'Δικηγόρος',
+            'add_new_item'  => 'Νέο μέλος',
+            'edit_item'     => 'Επεξεργασία μέλους',
+            'all_items'     => 'Δικηγόροι',
+            'menu_name'     => 'Δικηγόροι',
+        ),
+        'public'        => false,
+        'show_ui'       => true,
+        'show_in_menu'  => 'mz-content',
+        'menu_icon'     => 'dashicons-businessperson',
+        'supports'      => array( 'title', 'page-attributes' ),
+        'has_archive'   => false,
+        'rewrite'       => false,
     ) );
 
     register_post_type( 'mz_case', array(
@@ -1635,33 +1656,13 @@ add_action( 'init', function () {
             'singular_name' => 'Υπόθεση',
             'add_new_item'  => 'Νέα υπόθεση',
             'edit_item'     => 'Επεξεργασία υπόθεσης',
-            'all_items'     => 'Όλες οι υποθέσεις',
+            'all_items'     => 'Υποθέσεις',
             'menu_name'     => 'Υποθέσεις',
         ),
         'public'        => false,
         'show_ui'       => true,
-        'show_in_menu'  => true,
-        'menu_position' => 27,
+        'show_in_menu'  => 'mz-content',
         'menu_icon'     => 'dashicons-portfolio',
-        'supports'      => array( 'title', 'page-attributes' ),
-        'has_archive'   => false,
-        'rewrite'       => false,
-    ) );
-
-    register_post_type( 'mz_faq', array(
-        'labels' => array(
-            'name'          => 'Συχνές ερωτήσεις',
-            'singular_name' => 'Ερώτηση',
-            'add_new_item'  => 'Νέα ερώτηση',
-            'edit_item'     => 'Επεξεργασία ερώτησης',
-            'all_items'     => 'Όλες οι ερωτήσεις',
-            'menu_name'     => 'FAQ',
-        ),
-        'public'        => false,
-        'show_ui'       => true,
-        'show_in_menu'  => true,
-        'menu_position' => 26,
-        'menu_icon'     => 'dashicons-editor-help',
         'supports'      => array( 'title', 'page-attributes' ),
         'has_archive'   => false,
         'rewrite'       => false,
@@ -1673,33 +1674,31 @@ add_action( 'init', function () {
             'singular_name' => 'Testimonial',
             'add_new_item'  => 'Νέο testimonial',
             'edit_item'     => 'Επεξεργασία testimonial',
-            'all_items'     => 'Όλα τα testimonials',
+            'all_items'     => 'Testimonials',
             'menu_name'     => 'Testimonials',
         ),
         'public'        => false,
         'show_ui'       => true,
-        'show_in_menu'  => true,
-        'menu_position' => 25,
+        'show_in_menu'  => 'mz-content',
         'menu_icon'     => 'dashicons-format-quote',
         'supports'      => array( 'title', 'page-attributes' ),
         'has_archive'   => false,
         'rewrite'       => false,
     ) );
 
-    register_post_type( 'mz_member', array(
+    register_post_type( 'mz_faq', array(
         'labels' => array(
-            'name'          => 'Δικηγόροι',
-            'singular_name' => 'Δικηγόρος',
-            'add_new_item'  => 'Νέο μέλος',
-            'edit_item'     => 'Επεξεργασία μέλους',
-            'all_items'     => 'Όλοι οι δικηγόροι',
-            'menu_name'     => 'Δικηγόροι',
+            'name'          => 'Συχνές ερωτήσεις',
+            'singular_name' => 'Ερώτηση',
+            'add_new_item'  => 'Νέα ερώτηση',
+            'edit_item'     => 'Επεξεργασία ερώτησης',
+            'all_items'     => 'FAQ',
+            'menu_name'     => 'FAQ',
         ),
         'public'        => false,
         'show_ui'       => true,
-        'show_in_menu'  => true,
-        'menu_position' => 24,
-        'menu_icon'     => 'dashicons-businessperson',
+        'show_in_menu'  => 'mz-content',
+        'menu_icon'     => 'dashicons-editor-help',
         'supports'      => array( 'title', 'page-attributes' ),
         'has_archive'   => false,
         'rewrite'       => false,
