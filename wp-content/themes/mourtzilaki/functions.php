@@ -7,6 +7,11 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 define( 'MOURTZILAKI_VER', '1.0.0' );
 
+/* One-shot seeder (admin-only URL trigger). */
+if ( file_exists( __DIR__ . '/inc/seeder.php' ) ) {
+    require_once __DIR__ . '/inc/seeder.php';
+}
+
 /**
  * Theme setup.
  */

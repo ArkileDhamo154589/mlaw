@@ -216,6 +216,7 @@ body.menu-open { overflow: hidden; touch-action: none; }
     justify-content: space-between;
     min-height: var(--header-h);
     padding: 8px 0;
+    height: 20px;
 }
 
 .brand {
